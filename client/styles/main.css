@@ -2,3 +2,65 @@ html, body {
   padding: 0;
   margin: 0;
 }
+
+.card, .answer {
+  display: flex;
+  flex-direction: column;
+  padding: 1em;
+  align-items: center;
+
+  .source {
+    font-size: 20pt;
+  }
+
+  .choice + .choice {
+    padding-top: 1em;
+  }
+
+  .choices {
+    padding-top: 1em;
+    width: 100%;
+
+    font-size: 22pt;
+  }
+
+  .choice .text {
+    border-radius: 5px;
+    border: solid 1px #eee;
+    padding: 1em;
+    text-align: center;
+  }
+}
+
+.card {
+
+  .choice {
+    .text {
+      cursor: pointer;
+      background-color: #f5f5f5;
+    }
+
+    &.read-only .text {
+      cursor: default;
+      background-color: white;
+      color: #ddd;
+    }
+  }
+
+}
+
+.answer {
+
+  cursor: pointer;
+
+  .choice {
+
+    &.correct .text {
+      background-color: green;
+    }
+
+    &.incorrect .text {
+      background-color: red;
+    }
+  }
+}

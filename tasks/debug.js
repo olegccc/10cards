@@ -32,7 +32,14 @@ module.exports = function(grunt) {
 
         var child = startChild();
 
-        fs.watchFile('./debug/server/server.js', function() {
+        var fileToWatch = './debug/server/server.js';
+
+        fs.watchFile(fileToWatch, function() {
+
+            if (!fs.existsSync(fileToWatch)) {
+                // compilation failed, nothing to restart
+                return;
+            }
 
             grunt.log.ok('Detected server.js changes, restarting');
             child.ignore = true;
