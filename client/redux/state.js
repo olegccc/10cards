@@ -1,5 +1,5 @@
 import { Map } from 'immutable'
-import StateActions from '../actions/State'
+import StateActions from '../actions/state'
 
 const defaultState = Map({
     loginLoading: true,

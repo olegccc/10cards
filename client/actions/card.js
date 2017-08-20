@@ -48,7 +48,7 @@ export default class Card {
                     return;
                 }
 
-                setId = sets[0];
+                setId = sets[0].id;
                 localStorage.setItem('setId', setId);
             }
 

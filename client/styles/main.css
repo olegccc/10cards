@@ -3,6 +3,64 @@ html, body {
   margin: 0;
 }
 
+.logo {
+  user-select: none;
+  cursor: pointer;
+}
+
+.settings {
+  padding: 1em;
+
+  .section {
+    margin: 1em 0;
+    font-size: 14pt;
+    border-bottom: solid 1px #ccc;
+  }
+
+  .list {
+    .item {
+      a, a:visited {
+        color: cornflowerblue;
+        text-decoration: underline;
+        cursor: pointer;
+        user-select: none;
+      }
+    }
+
+    .item + .item {
+      margin-top: 0.5em;
+    }
+  }
+
+  .breadcrumbs {
+
+    display: flex;
+    flex-direction: row;
+
+    .item {
+      a, a:visited {
+        color: cornflowerblue;
+        text-decoration: underline;
+      }
+    }
+
+    .item + .item::before {
+      content: "::";
+      padding: 0 0.5em;
+    }
+  }
+
+  .new-set {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    > * + * {
+      margin-left: 1em;
+    }
+  }
+}
+
 .card, .answer {
   display: flex;
   flex-direction: column;

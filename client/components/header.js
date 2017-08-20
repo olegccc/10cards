@@ -1,5 +1,7 @@
 import React from 'react';
 import {Toolbar, ToolbarGroup, ToolbarTitle} from 'material-ui/Toolbar';
+import IconButton from 'material-ui/IconButton';
+import MenuIcon from 'material-ui/svg-icons/navigation/menu';
 import {connect} from 'react-redux';
 import { withRouter } from 'react-router';
 
@@ -13,16 +15,15 @@ class Header extends React.Component {
     render() {
         const {router} = this.props;
 
-        function showHome() {
-            router.push('/');
-        }
-
         return (
             <div className="header">
                 <Toolbar>
                     <ToolbarGroup>
-                        <ToolbarTitle text="10 cards" onTouchTap={showHome} className="logo" />
+                        <ToolbarTitle text="10 cards" onTouchTap={() => router.push('/')} className="logo" />
                     </ToolbarGroup>
+                    <IconButton color="contrast" aria-label="Menu" onTouchTap={() => router.push('/settings')}>
+                        <MenuIcon />
+                    </IconButton>
                 </Toolbar>
             </div>
         );

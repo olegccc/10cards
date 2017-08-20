@@ -1,10 +1,23 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import SetActions from '../actions/set'
+import Authenticate from '../utils/authenticate'
 
 import Router from './router';
 
 class Root extends React.Component {
+
+    async componentDidMount() {
+
+        let success = await Authenticate.start(this.props.dispatch);
+
+        if (!success) {
+            return;
+        }
+
+        this.props.dispatch(SetActions.refresh());
+    }
 
     render() {
 
@@ -16,4 +29,4 @@ class Root extends React.Component {
     }
 }
 
-export default Root;
+export default connect()(Root);

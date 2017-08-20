@@ -1,4 +1,0 @@
-const initializeState = (dispatch) => {
-
-
-};

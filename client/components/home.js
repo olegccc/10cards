@@ -4,7 +4,6 @@ import CardActions from '../actions/card'
 import Card from './card'
 import { withRouter } from 'react-router'
 import RaisedButton from 'material-ui/RaisedButton';
-import Authenticate from '../utils/authenticate'
 import Answer from './answer'
 
 class Home extends React.Component {
@@ -15,15 +14,11 @@ class Home extends React.Component {
         };
     }
 
-    async componentDidMount() {
+    componentDidMount() {
 
-        let success = await Authenticate.start(this.props.dispatch);
-
-        if (!success) {
-            return;
+        if (this.props.loggedIn) {
+            this.props.dispatch(CardActions.getNext());
         }
-
-        this.props.dispatch(CardActions.getNext());
     }
 
     login() {
