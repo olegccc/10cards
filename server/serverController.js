@@ -307,7 +307,7 @@ export default class ServerController {
 
             let card = cards.find(r => r._id.equals(answer._id));
             if (!card) {
-                console.log('Cannot find record ' + answer._id);
+                //console.log('Cannot find record ' + answer._id);
                 continue;
             }
 
@@ -373,7 +373,7 @@ export default class ServerController {
             // if we have more than one record with the same score we choose randomly from the list of items with the same score
             index = start + Math.floor(Math.random()*(end-start));
             record = cards[index];
-            console.log('2.1: ' + (end-start) + ' ' + index);
+            //console.log('2.1: ' + (end-start) + ' ' + index);
         }
 
         // console.log('3', record);
@@ -387,8 +387,8 @@ export default class ServerController {
             .map(r => ({text: r.target, id: r.answerId }))
             .sort((a, b) => (Math.abs(a.text.length-record.target.length)-Math.abs(b.text.length-record.target.length)));
 
-        console.log(record.target);
-        console.log(JSON.stringify(allTargets, null, ' '));
+        //console.log(record.target);
+        //console.log(JSON.stringify(allTargets, null, ' '));
 
         // console.log('5 ' + allTargets.length);
 
@@ -434,7 +434,7 @@ export default class ServerController {
 
             if (session) {
 
-                console.log('found session');
+                //console.log('found session');
 
                 return {
                     success: true
