@@ -4,6 +4,7 @@ import { withRouter } from 'react-router'
 import SubsetActions from '../actions/subset'
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
+import Checkbox from 'material-ui/Checkbox'
 
 class EditSubset extends React.Component {
 
@@ -13,7 +14,8 @@ class EditSubset extends React.Component {
             subsetName: '',
             source: '',
             target: '',
-            comment: ''
+            comment: '',
+            addOpposite: false
         };
         this.initialize(props);
     }
@@ -22,7 +24,8 @@ class EditSubset extends React.Component {
         let subsets = await SubsetActions.getSubsets(props.setId);
         let subset = subsets.find(s => s.id === props.subsetId);
         this.setState({
-            subsetName: subset.name
+            subsetName: subset.name,
+            oppositeSubsetId: subsets.length === 2 && subsets.find(s => s.id !== props.subsetId).id
         });
     }
 
@@ -37,6 +40,10 @@ class EditSubset extends React.Component {
         });
 
         await SubsetActions.addCard(setId, subsetId, source, target, comment);
+
+        if (this.state.oppositeSubsetId && this.state.addOpposite) {
+            await SubsetActions.addCard(setId, this.state.oppositeSubsetId, target, source, comment);
+        }
     }
 
     renderBody() {
@@ -69,9 +76,17 @@ class EditSubset extends React.Component {
                     fullWidth={true}
                     onChange={(event, value) => this.setState({ comment: value })}
                 />
+                {this.state.oppositeSubsetId ? <div style={{ margin: '1em 0'}}><Checkbox
+                    label="Add to opposite subset?"
+                    checked={this.state.addOpposite}
+                    onCheck={() => this.setState({ addOpposite: !this.state.addOpposite })}
+                /></div> : null}
                 <RaisedButton label="Add card" primary={true} disabled={!this.state.source || !this.state.target} onTouchTap={() => this.addCard()} fullWidth={true} />
             </div>
 
+            <div className="section">Cards</div>
+
+            <div><a href={ '#/settings/set/' + this.props.setId + '/subset/' + this.props.subsetId + '/cards'} >Edit Cards</a></div>
         </div>;
     }
 

@@ -40,4 +40,26 @@ export default class Subset {
             comment
         })
     }
+
+    static async getCards(subsetId) {
+
+        let sessionId = localStorage.getItem('sessionId');
+
+        let response = await FetchService.post('/cards', {
+            sessionId,
+            subsetId
+        });
+
+        return response.cards;
+    }
+
+    static async deleteCard(id) {
+
+        let sessionId = localStorage.getItem('sessionId');
+
+        await FetchService.post('/deleteCard', {
+            sessionId,
+            cardId: id
+        });
+    }
 }

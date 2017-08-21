@@ -24,7 +24,13 @@ const Answer = ({items, source, comment, selectedAnswer, correctAnswer, dispatch
                 type = 'regular';
             }
 
-            return <div key={id} className={ 'choice ' + type }><div className="text">{item.get('text')}</div></div>;
+            return <div key={id} className={ 'choice ' + type }>
+                <div className="text">
+                    <div className="space"></div>
+                    <div>{item.get('text')}</div>
+                    <div className="space"></div>
+                </div>
+            </div>;
         })}
     </div>
 </div>);

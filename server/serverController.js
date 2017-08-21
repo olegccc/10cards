@@ -11,7 +11,9 @@ const ALL_METHODS = [
     'post:addSet',
     'post:subsets:getSubsets',
     'post:addSubset',
-    'post:addCard'
+    'post:addCard',
+    'post:cards:getCards',
+    'post:deleteCard'
 ];
 
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
@@ -26,6 +28,39 @@ export default class ServerController {
 
     async initialize() {
         this.db = await connect(mongoDbUrl);
+    }
+
+    async deleteCard(req) {
+
+        let cardId = req.body.cardId;
+
+        if (!cardId || !RE_OBJECT_ID.test(cardId)) {
+            throw Error('Wrong card id');
+        }
+
+        cardId = ObjectId(cardId);
+
+        let session = await this.getSession(req);
+
+        let card = await this.db.collection('cards').findOne({
+            _id: cardId
+        });
+
+        if (!card || card.userId !== session.userId) {
+            throw Error('Cannot find card');
+        }
+
+        await this.db.collection('answers').removeMany({
+            cardId
+        });
+
+        await this.db.collection('cards').removeOne({
+            _id: cardId
+        });
+
+        return {
+            success: true
+        };
     }
 
     async addCard(req) {
@@ -91,6 +126,37 @@ export default class ServerController {
             sets: sets.map(set => ({
                 id: set._id,
                 name: set.name
+            }))
+        };
+    }
+
+    async getCards(req) {
+
+        if (!req.body.subsetId || !RE_OBJECT_ID.test(req.body.subsetId)) {
+            throw Error('Subset is not specified');
+        }
+
+        let session = await this.getSession(req);
+        let subsetId = ObjectId(req.body.subsetId);
+
+        let subset = await this.db.collection('subsets').findOne({
+            _id: subsetId
+        });
+
+        if (!subset || subset.userId !== session.userId) {
+            throw Error('Cannot find subset');
+        }
+
+        let cards = await this.db.collection('cards').find({
+            subsetId
+        }).toArray();
+
+        return {
+            cards: cards.map(card => ({
+                id: card._id,
+                source: card.source,
+                target: card.target,
+                comment: card.comment
             }))
         };
     }
@@ -216,7 +282,7 @@ export default class ServerController {
             throw Error('Wrong set id');
         }
 
-        let records = await this.db.collection('cards').find({
+        let cards = await this.db.collection('cards').find({
             setId
         }).toArray();
 
@@ -239,18 +305,22 @@ export default class ServerController {
 
         for (let answer of answers) {
 
-            let record = records.find(r => r._id.equals(answer._id));
-            if (!record) {
+            let card = cards.find(r => r._id.equals(answer._id));
+            if (!card) {
                 console.log('Cannot find record ' + answer._id);
                 continue;
             }
 
-            record.answers = answer.count;
+            card.answers = answer.count;
 
             if (answer.items.length) {
                 let items = answer.items.map(i => i ? 1 : 0);
-                record.score = items.reduce((a, b) => a + b, 0) / items.length;
+                card.score = items.reduce((a, b) => a + b, 0) / items.length;
             }
+        }
+
+        for (let card of cards) {
+            card.score = card.score !== undefined ? card.score : -1;
         }
 
         // we place records which will have higher probability at the beginning of the list
@@ -259,17 +329,17 @@ export default class ServerController {
         // this way we guarantee to take all unanswered records as fast as possible and then concentrate on records
         // with lower score (i.e. which have less correct answers)
 
-        records.sort((a, b) => {
-            if (!a.answers) {
-                return 1;
-            }
-            if (!b.answers) {
-                return -1;
-            }
-            return b.score - a.score;
+        cards.sort((a, b) => {
+            return a.score - b.score;
         });
 
-        console.log(1);
+        // console.log(1);
+
+        // console.log(JSON.stringify(cards.map(card => ({
+        //     answers: card.answers,
+        //     score: card.score,
+        //     source: card.source
+        // })), null, ' '));
 
         //console.log(answers);
 
@@ -277,25 +347,50 @@ export default class ServerController {
 
         // we use nonlinear probability distribution to take first items more often
         let index = Math.random();
-        index = Math.floor(index * index * records.length);
 
-        console.log('2 ' + index + ' ' + records.length);
+        if (cards[0].score === -1) {
+            index = 0;
+        } else {
+            index = Math.floor(index * index * cards.length);
+        }
+
+        // console.log('2 ' + index + ' ' + cards.length);
 
         // chose a record
-        let record = records[index];
+        let record = cards[index];
 
-        console.log('3', record);
+        let start = index, end = index+1;
+
+        while (start > 0 && cards[start-1].score === record.score) {
+            start--;
+        }
+
+        while (end < cards.length && cards[end].score === record.score) {
+            end++;
+        }
+
+        if (end-start > 1) {
+            // if we have more than one record with the same score we choose randomly from the list of items with the same score
+            index = start + Math.floor(Math.random()*(end-start));
+            record = cards[index];
+            console.log('2.1: ' + (end-start) + ' ' + index);
+        }
+
+        // console.log('3', record);
 
         let subsetId = record.subsetId;
 
-        console.log('4 ' + subsetId + ' ' + typeof subsetId);
+        // console.log('4 ' + subsetId + ' ' + typeof subsetId);
 
-        let allTargets = records
+        let allTargets = cards
             .filter(r => !r._id.equals(record._id) && r.subsetId.equals(subsetId))
             .map(r => ({text: r.target, id: r.answerId }))
             .sort((a, b) => (Math.abs(a.text.length-record.target.length)-Math.abs(b.text.length-record.target.length)));
 
-        console.log('5 ' + allTargets.length);
+        console.log(record.target);
+        console.log(JSON.stringify(allTargets, null, ' '));
+
+        // console.log('5 ' + allTargets.length);
 
         let targets = [];
 
@@ -317,7 +412,7 @@ export default class ServerController {
             id: record.answerId
         });
 
-        console.log(6);
+        // console.log(6);
 
         return {
             items: targets,

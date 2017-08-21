@@ -25,6 +25,12 @@ class Home extends React.Component {
         FacebookInit.login(this.props.dispatch);
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.loggedIn && this.props.card && !this.props.card.source) {
+            this.props.dispatch(CardActions.getNext());
+        }
+    }
+
     renderBody() {
         if (this.props.loginLoading) {
             return null;

@@ -17,7 +17,7 @@ class Header extends React.Component {
 
         return (
             <div className="header">
-                <Toolbar>
+                <Toolbar style={{ backgroundColor: 'white'}}>
                     <ToolbarGroup>
                         <ToolbarTitle text="10 cards" onTouchTap={() => router.push('/')} className="logo" />
                     </ToolbarGroup>
