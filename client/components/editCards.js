@@ -64,7 +64,7 @@ class EditCards extends React.Component {
             <div className="filter">
                 <TextField
                     hintText="Apply filter"
-                    floatingLabelText="Filter"
+                    style={{fontSize: '3vh', height: '6vh'}}
                     value={this.state.filter}
                     fullWidth={true}
                     onChange={(event, value) => this.setState({filter: value})}

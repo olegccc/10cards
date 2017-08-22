@@ -6,6 +6,11 @@ html, body {
 body {
   display: flex;
   flex-direction: column;
+  font-size: 2vh;
+}
+
+.home {
+  padding: 1em;
 }
 
 #app {
@@ -36,6 +41,7 @@ body {
 .logo {
   user-select: none;
   cursor: pointer;
+  font-size: 2vh !important;
 }
 
 .settings {
@@ -43,7 +49,7 @@ body {
 
   .section {
     margin: 1em 0;
-    font-size: 14pt;
+    font-size: 4vh;
     border-bottom: solid 1px #ccc;
   }
 
@@ -94,12 +100,11 @@ body {
 .card, .answer {
   display: flex;
   flex-direction: column;
-  padding: 1em;
   align-items: center;
   font-family: 'Open Sans', sans-serif;
 
   .source {
-    font-size: 20pt;
+    font-size: 4vh;
     font-weight: bold;
     padding: 0 1em;
   }
@@ -112,7 +117,7 @@ body {
     padding-top: 1em;
     width: 100%;
 
-    font-size: 22pt;
+    font-size: 4vh;
   }
 
   .choice .text {
@@ -197,4 +202,13 @@ body {
   .record + .record {
     border-top: solid 1px #eee;
   }
+}
+
+@media screen and (min-width: 800px) {
+
+  .home {
+    margin: 0 auto;
+    width: 800px;
+  }
+
 }

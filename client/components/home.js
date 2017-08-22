@@ -5,6 +5,7 @@ import Card from './card'
 import { withRouter } from 'react-router'
 import RaisedButton from 'material-ui/RaisedButton';
 import Answer from './answer'
+import Authenticate from '../utils/authenticate'
 
 class Home extends React.Component {
 
@@ -16,17 +17,17 @@ class Home extends React.Component {
 
     componentDidMount() {
 
-        if (this.props.loggedIn) {
+        if (this.props.loggedIn && !this.props.card.source) {
             this.props.dispatch(CardActions.getNext());
         }
     }
 
     login() {
-        FacebookInit.login(this.props.dispatch);
+        Authenticate.login(this.props.dispatch);
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.loggedIn && this.props.card && !this.props.card.source) {
+        if (nextProps.loggedIn && !this.props.loggedIn && this.props.card && !this.props.card.source) {
             this.props.dispatch(CardActions.getNext());
         }
     }

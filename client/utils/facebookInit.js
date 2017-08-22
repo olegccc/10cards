@@ -33,8 +33,11 @@ export default class FacebookInit {
     }
 
     static login() {
+
         return new Promise(resolve => {
+
             FB.login(function(response) {
+
                 resolve(response);
             });
         });

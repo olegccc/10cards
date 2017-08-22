@@ -57,21 +57,24 @@ class EditSubset extends React.Component {
             <div>
                 <TextField
                     hintText="Original text"
-                    floatingLabelText="Original"
+                    style={{fontSize: '3vh', height: '6vh'}}
+                    hintStyle={{ bottom: '2vh'}}
                     value={this.state.source}
                     fullWidth={true}
                     onChange={(event, value) => this.setState({ source: value })}
                 />
                 <TextField
                     hintText="Translated text"
-                    floatingLabelText="Translation"
+                    style={{fontSize: '3vh', height: '6vh'}}
+                    hintStyle={{ bottom: '2vh'}}
                     value={this.state.target}
                     fullWidth={true}
                     onChange={(event, value) => this.setState({ target: value })}
                 />
                 <TextField
                     hintText="Additional explanation"
-                    floatingLabelText="Comment"
+                    style={{fontSize: '3vh', height: '6vh'}}
+                    hintStyle={{ bottom: '2vh'}}
                     value={this.state.comment}
                     fullWidth={true}
                     onChange={(event, value) => this.setState({ comment: value })}
@@ -81,7 +84,14 @@ class EditSubset extends React.Component {
                     checked={this.state.addOpposite}
                     onCheck={() => this.setState({ addOpposite: !this.state.addOpposite })}
                 /></div> : null}
-                <RaisedButton label="Add card" primary={true} disabled={!this.state.source || !this.state.target} onTouchTap={() => this.addCard()} fullWidth={true} />
+                <RaisedButton
+                    label="Add card"
+                    primary={true}
+                    disabled={!this.state.source || !this.state.target}
+                    onTouchTap={() => this.addCard()}
+                    labelStyle={{fontSize: '3vh'}}
+                    buttonStyle={{height: '5vh'}}
+                    fullWidth={true} />
             </div>
 
             <div className="section">Cards</div>
