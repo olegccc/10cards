@@ -18,7 +18,7 @@ const ALL_METHODS = [
 
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
 
-const mongoDbUrl = 'mongodb://localhost:27017/10cards';
+const mongoDbUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/10cards';
 
 export default class ServerController {
 
@@ -89,7 +89,6 @@ export default class ServerController {
         });
 
         return {
-            success: true,
             id: result.insertedId
         };
     }
@@ -109,7 +108,6 @@ export default class ServerController {
         });
 
         return {
-            success: true,
             id: result.insertedId
         };
     }

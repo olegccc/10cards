@@ -4,11 +4,16 @@ import ServerController from './serverController'
 import path from 'path'
 import 'isomorphic-fetch'
 
-let port = 8080;
 let useHttps = false;
 
-if (process.argv.length > 2) {
-    port = process.argv[2];
+let port;
+
+if (process.env.PORT) {
+    port = process.env.PORT;
+} else if (process.argv.length > 2) {
+    port = Number(process.argv[2]) || 8080;
+} else {
+    port = 8080;
 }
 
 const server = useHttps ? https.createServer(require('../config/credentials')) : http.createServer();
