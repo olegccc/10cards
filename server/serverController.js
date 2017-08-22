@@ -18,7 +18,7 @@ const ALL_METHODS = [
 
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
 
-const mongoDbUrl = process.env.DATABASE_URL || 'mongodb://localhost:27017/10cards';
+const mongoDbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/10cards';
 
 export default class ServerController {
 
