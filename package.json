@@ -4,7 +4,7 @@
   "description": "10cards",
   "main": "client/index.js",
   "scripts": {
-    "start": "grunt release:run"
+    "start": "./node_modules/grunt-cli/bin/grunt release release:run"
   },
   "engines": {
     "node": "8.2.1"
