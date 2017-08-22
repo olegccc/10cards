@@ -13,18 +13,11 @@
   "author": "oleg@gordeev.cz",
   "license": "MPL",
   "dependencies": {
-    "babel-regenerator-runtime": "^6.5.0",
-    "body-parser": "^1.15.2",
     "cookie-parser": "^1.4.3",
-    "express": "^4.14.0",
     "grunt-cli": "^1.2.0",
     "isomorphic-fetch": "^2.2.1",
     "js-sha256": "^0.6.0",
     "mongodb": "^2.2.31",
-    "uuid": "^3.0.1",
-    "ws": "^1.1.1"
-  },
-  "devDependencies": {
     "atob": "^2.0.3",
     "autoprefixer": "^6.5.3",
     "babel": "^6.5.2",
