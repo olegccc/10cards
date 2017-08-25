@@ -10,6 +10,7 @@ body {
 
 .home {
   padding: 1em;
+  font-size: 2em;
 }
 
 #app {
@@ -104,20 +105,20 @@ body {
   font-family: 'Open Sans', sans-serif;
 
   .source {
-    font-size: 3em;
+    font-size: 2em;
     font-weight: bold;
     padding: 0 1em;
   }
 
   .choice + .choice {
-    padding-top: 1em;
+    padding-top: 0.5em;
   }
 
   .choices {
-    padding-top: 1em;
+    padding-top: 0.5em;
     width: 100%;
 
-    font-size: 3em;
+    font-size: 2em;
   }
 
   .choice .text {
@@ -208,6 +209,15 @@ body {
   flex-direction: column;
   .space {
     flex: 1 1;
+  }
+}
+
+.header {
+  .error {
+    padding: 0.5em;
+    background-color: #ff99aa;
+    font-size: 2em;
+    text-align: center;
   }
 }
 

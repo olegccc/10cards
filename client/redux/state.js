@@ -4,7 +4,7 @@ import StateActions from '../actions/state'
 const defaultState = Map({
     loginLoading: true,
     loggedIn: false,
-    loginError: null,
+    error: null,
     loading: false
 });
 
@@ -13,16 +13,29 @@ function reducer(state = defaultState, action) {
         case StateActions.LOGIN_SUCCESS:
             return state.merge({
                 loginLoading: false,
-                loggedIn: true
+                loggedIn: true,
+                error: ''
             });
         case StateActions.LOGIN_ERROR:
             return state.merge({
                 loginLoading: false,
-                loggedIn: false,
-                loginError: action.error
+                loggedIn: false
             });
         case StateActions.LOADING:
-            return state.set('loading', action.loading);
+            if (action.loading) {
+                return state.set('loading', true);
+            } else {
+                return state.merge({
+                    loading: false,
+                    error: ''
+                });
+            }
+        case StateActions.ERROR:
+            return state.merge({
+                error: action.error,
+                loginLoading: false,
+                loading: false
+            });
     }
 
     return state;

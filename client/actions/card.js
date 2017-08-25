@@ -1,5 +1,6 @@
-import FetchService from '../../shared/fetchService'
 import StateActions from '../actions/state'
+import Configuration from '../utils/configuration'
+import BackendApi from '../utils/backendApi'
 
 export default class Card {
 
@@ -20,11 +21,7 @@ export default class Card {
 
             let cardId = getState().card.get('cardId');
 
-            const response = await FetchService.post('/select', {
-                sessionId: localStorage.getItem('sessionId'),
-                answer: choiceId,
-                cardId
-            });
+            const response = await BackendApi.selectCard(cardId, choiceId);
 
             dispatch({
                 type: Card.SET_ANSWER,
@@ -43,30 +40,23 @@ export default class Card {
 
             let lastAnswers = getState().card.get('lastAnswers').toArray();
 
-            let setId = localStorage.getItem('setId');
-            let sessionId = localStorage.getItem('sessionId');
+            let setId = Configuration.getSetId();
 
             if (!setId) {
-                let response = await FetchService.post('/sets', {
-                    sessionId
-                });
+                let sets = await BackendApi.getSets();
 
-                let sets = response.sets;
                 if (sets.length === 0) {
                     // we don't have any set yet
                     dispatch(StateActions.onFinishLoading());
+                    dispatch(StateActions.onError('No card set is defined, nothing to load'));
                     return;
                 }
 
                 setId = sets[0].id;
-                localStorage.setItem('setId', setId);
+                Configuration.setSetId(setId);
             }
 
-            const response = await FetchService.post('/card', {
-                lastAnswers,
-                sessionId,
-                setId
-            });
+            const response = await BackendApi.getCard(lastAnswers, setId);
 
             dispatch({
                 type: Card.SET_CARD,

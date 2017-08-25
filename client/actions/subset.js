@@ -1,65 +1,33 @@
-import FetchService from '../../shared/fetchService'
+import BackendApi from "../utils/backendApi";
 
 export default class Subset {
 
     static async getSubsets(setId) {
 
-        let sessionId = localStorage.getItem('sessionId');
-
-        let response = await FetchService.post('/subsets', {
-            sessionId,
-            setId
-        });
-
-        return response.subsets;
+        return await BackendApi.getSubsets(setId);
     }
 
     static async addSubset(setId, name) {
 
-        let sessionId = localStorage.getItem('sessionId');
-
-        let response = await FetchService.post('/addSubset', {
-            sessionId,
-            setId,
-            name
-        });
-
-        return response.id;
+        return await BackendApi.addSubset(setId, name);
     }
 
     static async addCard(setId, subsetId, source, target, comment) {
 
-        let sessionId = localStorage.getItem('sessionId');
-
-        await FetchService.post('/addCard', {
-            sessionId,
-            setId,
+        return await BackendApi.addCard(setId,
             subsetId,
             source,
             target,
-            comment
-        })
+            comment);
     }
 
     static async getCards(subsetId) {
 
-        let sessionId = localStorage.getItem('sessionId');
-
-        let response = await FetchService.post('/cards', {
-            sessionId,
-            subsetId
-        });
-
-        return response.cards;
+        return await BackendApi.getCards(subsetId);
     }
 
     static async deleteCard(id) {
 
-        let sessionId = localStorage.getItem('sessionId');
-
-        await FetchService.post('/deleteCard', {
-            sessionId,
-            cardId: id
-        });
+        await BackendApi.deleteCard(id);
     }
 }

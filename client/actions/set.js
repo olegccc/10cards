@@ -1,39 +1,28 @@
-import FetchService from '../../shared/fetchService'
+import BackendApi from '../utils/backendApi'
 
 export default class Set {
 
     static SET_SETS = 'set_sets';
 
     static addNewSet(name) {
+
         return async dispatch => {
 
-            let sessionId = localStorage.getItem('sessionId');
-
-            let response = await FetchService.post('/addSet', {
-                sessionId,
-                name
-            });
+            let id = await BackendApi.addSet(name);
 
             dispatch(Set.refresh());
 
-            return response.id;
+            return id;
         }
     }
 
     static refresh() {
+
         return async dispatch => {
-
-            let sessionId = localStorage.getItem('sessionId');
-
-            let response = await FetchService.post('/sets', {
-                sessionId
-            });
-
-            let sets = response.sets;
 
             dispatch({
                 type: Set.SET_SETS,
-                sets
+                sets: await BackendApi.getSets()
             });
         }
     }

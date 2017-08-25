@@ -1,6 +1,7 @@
 import FacebookInit from './facebookInit'
 import FetchService from '../../shared/fetchService'
 import StateActions from '../actions/state'
+import Configuration from './configuration'
 
 export default class Authenticate {
 
@@ -16,7 +17,8 @@ export default class Authenticate {
             await Authenticate.finishAuth(response, dispatch);
 
         } catch (error) {
-            dispatch(StateActions.onLoginError(error.message));
+            dispatch(StateActions.onLoginError());
+            dispatch(StateActions.onError(error.message));
             return false;
         }
 
@@ -35,7 +37,7 @@ export default class Authenticate {
             throw Error('Cannot login');
         }
 
-        localStorage.setItem('sessionId', response.sessionId);
+        Configuration.setSessionId(response.sessionId);
 
         dispatch(StateActions.onLoginSuccess());
     }
@@ -44,7 +46,7 @@ export default class Authenticate {
 
         try {
 
-            let sessionId = localStorage.getItem('sessionId');
+            let sessionId = Configuration.getSessionId();
 
             if (sessionId) {
 
@@ -62,14 +64,15 @@ export default class Authenticate {
             let response = await FacebookInit.init();
 
             if (response.status !== 'connected' || !response.authResponse || !response.authResponse.accessToken) {
-                dispatch(StateActions.onLoginError('Not logged in'));
+                dispatch(StateActions.onLoginError());
                 return;
             }
 
             await Authenticate.finishAuth(response, dispatch);
 
         } catch (error) {
-            dispatch(StateActions.onLoginError(error.message));
+            dispatch(StateActions.onLoginError());
+            dispatch(StateActions.onError(error.message));
             return false;
         }
 

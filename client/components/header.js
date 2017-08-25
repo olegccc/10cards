@@ -7,11 +7,6 @@ import { withRouter } from 'react-router';
 
 class Header extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {};
-    }
-
     render() {
         const {router} = this.props;
 
@@ -28,13 +23,15 @@ class Header extends React.Component {
                         <MenuIcon />
                     </IconButton>
                 </Toolbar>
+                {this.props.error ? <div className="error">{this.props.error}</div> : null}
             </div>
         );
     }
 }
 
-const mapStateToProps = () => {
+const mapStateToProps = ({state}) => {
     return {
+        error: state.get('error')
     };
 };
 

@@ -5,6 +5,7 @@ export default class State {
     static LOGIN_SUCCESS = 'login_success';
     static LOGIN_ERROR = 'login_error';
     static LOADING = 'loading';
+    static ERROR = 'error';
 
     static onStartLoading() {
         return async dispatch => {
@@ -34,12 +35,22 @@ export default class State {
         }
     }
 
-    static onLoginError(error) {
+    static onLoginError() {
 
         return async dispatch => {
 
             dispatch({
-                type: State.LOGIN_ERROR,
+                type: State.LOGIN_ERROR
+            });
+        }
+    }
+
+    static onError(error) {
+
+        return async dispatch => {
+
+            dispatch({
+                type: State.ERROR,
                 error
             });
         }

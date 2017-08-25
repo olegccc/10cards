@@ -1,37 +1,15 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import CardActions from '../actions/card'
-import StateActions from '../actions/state'
-import Card from './card'
 import { withRouter } from 'react-router'
 import RaisedButton from 'material-ui/RaisedButton';
-import Answer from './answer'
 import Authenticate from '../utils/authenticate'
 import CircularProgress from 'material-ui/CircularProgress';
+import Dashboard from './dashboard'
 
 class Home extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-        };
-    }
-
-    componentDidMount() {
-
-        if (this.props.loggedIn && !this.props.card.source) {
-            this.props.dispatch(CardActions.getNext());
-        }
-    }
-
     login() {
         Authenticate.login(this.props.dispatch);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.loggedIn && !this.props.loggedIn && this.props.card && !this.props.card.source) {
-            this.props.dispatch(CardActions.getNext());
-        }
     }
 
     renderBody() {
@@ -51,15 +29,18 @@ class Home extends React.Component {
         if (!this.props.loggedIn) {
             return (<div>
                 <p>You have not logged in. Please click Login button to start.</p>
-                <div><RaisedButton label="Login with Facebook" primary={true} onTouchTap={() => this.login()}/></div>
+                <div>
+                    <RaisedButton
+                        labelStyle={{ fontSize: '1em'}}
+                        buttonStyle={{ height: '2em'}}
+                        label="Login with Facebook"
+                        primary={true}
+                        onTouchTap={() => this.login()}/>
+                </div>
             </div>);
         }
 
-        if (this.props.card.correctAnswer) {
-            return <Answer {...this.props.card} />;
-        }
-
-        return <Card {...this.props.card} />;
+        return <Dashboard/>;
     }
 
     render() {
@@ -67,9 +48,8 @@ class Home extends React.Component {
     }
 }
 
-const mapStateToProps = ({card, state}) => {
+const mapStateToProps = ({state}) => {
     return {
-        card: card.toObject(),
         loggedIn: state.get('loggedIn'),
         loginLoading: state.get('loginLoading'),
         loading: state.get('loading')
