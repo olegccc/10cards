@@ -12,6 +12,7 @@ class EditSubset extends React.Component {
         super(props);
         this.state = {
             subsetName: '',
+            language: '',
             source: '',
             target: '',
             comment: '',
@@ -25,6 +26,7 @@ class EditSubset extends React.Component {
         let subset = subsets.find(s => s.id === props.subsetId);
         this.setState({
             subsetName: subset.name,
+            language: subset.language,
             oppositeSubsetId: subsets.length === 2 && subsets.find(s => s.id !== props.subsetId).id
         });
     }

@@ -1,4 +1,5 @@
 import FetchService from '../../shared/fetchService'
+import StateActions from '../actions/state'
 
 export default class Card {
 
@@ -9,6 +10,8 @@ export default class Card {
     static setChoice(choiceId) {
 
         return async (dispatch, getState) => {
+
+            dispatch(StateActions.onStartLoading());
 
             dispatch({
                 type: Card.SET_CHOICE,
@@ -27,12 +30,18 @@ export default class Card {
                 type: Card.SET_ANSWER,
                 answerId: response.correctAnswer
             });
+
+            dispatch(StateActions.onFinishLoading());
         }
     }
 
     static getNext() {
 
-        return async dispatch => {
+        return async (dispatch, getState) => {
+
+            dispatch(StateActions.onStartLoading());
+
+            let lastAnswers = getState().card.get('lastAnswers').toArray();
 
             let setId = localStorage.getItem('setId');
             let sessionId = localStorage.getItem('sessionId');
@@ -45,6 +54,7 @@ export default class Card {
                 let sets = response.sets;
                 if (sets.length === 0) {
                     // we don't have any set yet
+                    dispatch(StateActions.onFinishLoading());
                     return;
                 }
 
@@ -53,6 +63,7 @@ export default class Card {
             }
 
             const response = await FetchService.post('/card', {
+                lastAnswers,
                 sessionId,
                 setId
             });
@@ -64,6 +75,8 @@ export default class Card {
                 comment: response.comment,
                 cardId: response.id
             });
+
+            dispatch(StateActions.onFinishLoading());
         };
 
     }

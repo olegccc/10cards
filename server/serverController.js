@@ -20,6 +20,10 @@ const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
 
 const mongoDbUrl = process.env.MONGODB_URI || 'mongodb://localhost:27017/10cards';
 
+function random(max) {
+    return Math.floor(Math.random()*max);
+}
+
 export default class ServerController {
 
     constructor(server, deviceApi) {
@@ -343,38 +347,68 @@ export default class ServerController {
 
         //console.log(records);
 
-        // we use nonlinear probability distribution to take first items more often
-        let index = Math.random();
+        let record;
 
-        if (cards[0].score === -1) {
-            index = 0;
+        if (cards[0].score === -1) { // i.e. it was never chosen
+            record = cards[0];
         } else {
-            index = Math.floor(index * index * cards.length);
+
+            for (;;) {
+
+                let index = Math.random();
+
+                // nonlinear probability distribution to take first items more often
+                // note that [0;1) * [0;1) also belongs to [0;1)
+                index = Math.floor(index * index * cards.length);
+
+                // console.log('2 ' + index + ' ' + cards.length);
+
+                // choose a record
+                record = cards[index];
+
+                let start = index, end = index+1;
+
+                while (start > 0 && cards[start-1].score === record.score) {
+                    start--;
+                }
+
+                while (end < cards.length && cards[end].score === record.score) {
+                    end++;
+                }
+
+                if (end-start > 1) {
+                    // if we have more than one record with the same score we choose randomly from the list of items with the same score
+                    index = start + Math.floor(Math.random()*(end-start));
+                    record = cards[index];
+                    //console.log('2.1: ' + (end-start) + ' ' + index);
+                }
+
+                // console.log('3', record);
+
+                // ensure it is not the same answer we got last three times; assume that
+                // lastAnswers is sorted as 'first item is the newest one'
+
+                if (cards.length < 6) { // exception: we don't check for last cards if we have very limited set of existing cards
+                    console.log('too less cards');
+                    record = cards[index];
+                    break;
+                }
+
+                let lastAnswersCount = Math.min(3, req.body.lastAnswers ? req.body.lastAnswers.length : 0);
+                let cardId = record._id.toHexString();
+                let i;
+                console.log('cardId: ' + cardId + ', count: ' + lastAnswersCount + ', lastAnswers: ', req.body.lastAnswers);
+                for (i = 0; i < 3 && i < lastAnswersCount; i++) {
+                    if (req.body.lastAnswers[i] === cardId) {
+                        break;
+                    }
+                }
+                console.log(i);
+                if (i >= lastAnswersCount) {
+                    break;
+                }
+            }
         }
-
-        // console.log('2 ' + index + ' ' + cards.length);
-
-        // chose a record
-        let record = cards[index];
-
-        let start = index, end = index+1;
-
-        while (start > 0 && cards[start-1].score === record.score) {
-            start--;
-        }
-
-        while (end < cards.length && cards[end].score === record.score) {
-            end++;
-        }
-
-        if (end-start > 1) {
-            // if we have more than one record with the same score we choose randomly from the list of items with the same score
-            index = start + Math.floor(Math.random()*(end-start));
-            record = cards[index];
-            //console.log('2.1: ' + (end-start) + ' ' + index);
-        }
-
-        // console.log('3', record);
 
         let subsetId = record.subsetId;
 

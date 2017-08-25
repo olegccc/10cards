@@ -60,6 +60,17 @@ class EditSet extends React.Component {
             </div>
             <div className="section">Edit Subsets</div>
 
+            <div>
+                <p>
+                    Note that if you define exactly two subsets they can be used together:
+                    <ul>
+                        <li>answer added to one subset can be
+                            automatically added as question to second subset and vice versa</li>
+                        <li>If you define also source and target languages you can get automatic translations</li>
+                    </ul>
+                </p>
+            </div>
+
             <div className="list">
                 {this.state.subsets.map(subset => (
                     <div className="item" key={subset.id}>

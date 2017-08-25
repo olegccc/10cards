@@ -6,7 +6,6 @@ html, body {
 body {
   display: flex;
   flex-direction: column;
-  font-size: 2vh;
 }
 
 .home {
@@ -41,15 +40,16 @@ body {
 .logo {
   user-select: none;
   cursor: pointer;
-  font-size: 2vh !important;
+  font-size: 2em !important;
 }
 
 .settings {
   padding: 1em;
+  font-size: 2em;
 
   .section {
     margin: 1em 0;
-    font-size: 4vh;
+    font-size: 1.5em;
     border-bottom: solid 1px #ccc;
   }
 
@@ -104,7 +104,7 @@ body {
   font-family: 'Open Sans', sans-serif;
 
   .source {
-    font-size: 4vh;
+    font-size: 3em;
     font-weight: bold;
     padding: 0 1em;
   }
@@ -117,13 +117,13 @@ body {
     padding-top: 1em;
     width: 100%;
 
-    font-size: 4vh;
+    font-size: 3em;
   }
 
   .choice .text {
     border-radius: 5px;
     border: solid 1px #eee;
-    padding: 1em;
+    padding: 0 1em;
     text-align: center;
   }
 }
@@ -157,11 +157,12 @@ body {
   .choice {
 
     &.correct .text {
-      background-color: green;
+      background-color: #99ffcc;
     }
 
     &.incorrect .text {
-      background-color: red;
+      background-color: #ff99aa;
+      border: solid 5px red;
     }
   }
 }
@@ -201,6 +202,16 @@ body {
 
   .record + .record {
     border-top: solid 1px #eee;
+  }
+}
+
+.loading {
+  flex: 1 1;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  .space {
+    flex: 1 1;
   }
 }
 

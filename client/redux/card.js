@@ -1,4 +1,4 @@
-import { Map } from 'immutable'
+import { Map, List } from 'immutable'
 import CardActions from '../actions/card'
 
 const defaultState = Map({
@@ -8,6 +8,7 @@ const defaultState = Map({
     selectedAnswer: null,
     correctAnswer: null,
     cardId: null,
+    lastAnswers: List()
 });
 
 function reducer(state = defaultState, action) {
@@ -27,8 +28,16 @@ function reducer(state = defaultState, action) {
                 selectedAnswer: action.answer
             });
         case CardActions.SET_ANSWER:
+
+            let lastAnswers = state.get('lastAnswers');
+
+            if (lastAnswers.size >= 3) {
+                lastAnswers = lastAnswers.shift();
+            }
+
             return state.merge({
-                correctAnswer: action.answerId
+                correctAnswer: action.answerId,
+                lastAnswers: lastAnswers.push(state.get('cardId'))
             });
     }
 

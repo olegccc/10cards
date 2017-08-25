@@ -4,7 +4,8 @@ import StateActions from '../actions/state'
 const defaultState = Map({
     loginLoading: true,
     loggedIn: false,
-    loginError: null
+    loginError: null,
+    loading: false
 });
 
 function reducer(state = defaultState, action) {
@@ -20,6 +21,8 @@ function reducer(state = defaultState, action) {
                 loggedIn: false,
                 loginError: action.error
             });
+        case StateActions.LOADING:
+            return state.set('loading', action.loading);
     }
 
     return state;
