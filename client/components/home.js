@@ -14,14 +14,6 @@ class Home extends React.Component {
 
     renderBody() {
 
-        if (this.props.loading) {
-            return <div className="loading">
-                <div className="space"></div>
-                <CircularProgress size={100} thickness={7} />
-                <div className="space"></div>
-            </div>;
-        }
-
         if (this.props.loginLoading) {
             return null;
         }
@@ -44,6 +36,16 @@ class Home extends React.Component {
     }
 
     render() {
+
+        if (this.props.loading) {
+            return <div className="loading">
+                <div className="space"></div>
+                <CircularProgress size={100} thickness={7} />
+                <div className="space"></div>
+            </div>;
+        }
+
+
         return (<div className="home">{this.renderBody()}</div>);
     }
 }
