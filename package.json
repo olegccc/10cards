@@ -4,7 +4,8 @@
   "description": "10cards",
   "main": "client/index.js",
   "scripts": {
-    "start": "npm install; ./node_modules/grunt-cli/bin/grunt release:run"
+    "postinstall": "./node_modules/grunt-cli/bin/grunt buildRelease",
+    "start": "./node_modules/grunt-cli/bin/grunt runRelease"
   },
   "engines": {
     "node": "8.2.1"

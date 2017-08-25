@@ -19,17 +19,8 @@ module.exports = function(grunt) {
         this.async();
     });
 
-    grunt.registerTask('release', function(option) {
-
-        var tasks = [
-            'compile:client:release:true',
-            'compile:server:release:true'
-        ];
-
-        if (option === 'run') {
-            tasks.push('runRelease');
-        }
-
-        grunt.task.run(tasks);
+    grunt.registerTask('buildRelease', function(option) {
+        grunt.task.run(['compile:client:release:true',
+            'compile:server:release:true']);
     });
 };
