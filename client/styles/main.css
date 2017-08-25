@@ -135,10 +135,6 @@ body {
       cursor: pointer;
       background-color: #fcfcfc;
       transition: background 0.3s;
-
-      &:hover {
-        background-color: #ccc;
-      }
     }
 
     &.read-only .text {
