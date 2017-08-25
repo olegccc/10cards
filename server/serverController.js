@@ -9,8 +9,6 @@ const ALL_METHODS = [
     'post:select:selectCard',
     'post:sets:getSets',
     'post:addSet',
-    'post:subsets:getSubsets',
-    'post:addSubset',
     'post:addCard',
     'post:cards:getCards',
     'post:deleteCard'
@@ -71,21 +69,20 @@ export default class ServerController {
 
         let session = await this.getSession(req);
 
-        let {setId, subsetId, source, target, comment} = req.body;
+        let {setId, source, target, comment} = req.body;
 
-        let subset = await this.db.collection('subsets').findOne({
-            _id: ObjectId(subsetId)
+        let set = await this.db.collection('sets').findOne({
+            _id: ObjectId(setId)
         });
 
-        if (!subset || subset.userId !== session.userId) {
-            throw Error('Cannot find subset');
+        if (!set || set.userId !== session.userId) {
+            throw Error('Cannot find set');
         }
 
         let result = await this.db.collection('cards').insertOne({
             userId: session.userId,
             created: new Date(),
             setId: ObjectId(setId),
-            subsetId: ObjectId(subsetId),
             source,
             target,
             comment,
@@ -134,23 +131,23 @@ export default class ServerController {
 
     async getCards(req) {
 
-        if (!req.body.subsetId || !RE_OBJECT_ID.test(req.body.subsetId)) {
-            throw Error('Subset is not specified');
+        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
+            throw Error('Set is not specified');
         }
 
         let session = await this.getSession(req);
-        let subsetId = ObjectId(req.body.subsetId);
+        let setId = ObjectId(req.body.setId);
 
-        let subset = await this.db.collection('subsets').findOne({
-            _id: subsetId
+        let set = await this.db.collection('sets').findOne({
+            _id: setId
         });
 
-        if (!subset || subset.userId !== session.userId) {
-            throw Error('Cannot find subset');
+        if (!set || set.userId !== session.userId) {
+            throw Error('Cannot find set');
         }
 
         let cards = await this.db.collection('cards').find({
-            subsetId
+            setId
         }).toArray();
 
         return {
@@ -159,52 +156,6 @@ export default class ServerController {
                 source: card.source,
                 target: card.target,
                 comment: card.comment
-            }))
-        };
-    }
-
-    async addSubset(req) {
-
-        if (!req.body.name) {
-            throw Error('Subset name cannot be empty');
-        }
-
-        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
-            throw Error('Unknown set id');
-        }
-
-        let session = await this.getSession(req);
-
-        let result = await this.db.collection('subsets').insertOne({
-            userId: session.userId,
-            setId: ObjectId(req.body.setId),
-            created: new Date(),
-            name: req.body.name
-        });
-
-        return {
-            success: true,
-            id: result.insertedId
-        };
-    }
-
-    async getSubsets(req) {
-
-        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
-            throw Error('Unknown set id');
-        }
-
-        let session = await this.getSession(req);
-
-        let subsets = await this.db.collection('subsets').find({
-            userId: session.userId,
-            setId: ObjectId(req.body.setId)
-        }).toArray();
-
-        return {
-            subsets: subsets.map(subset => ({
-                id: subset._id,
-                name: subset.name
             }))
         };
     }
@@ -254,7 +205,6 @@ export default class ServerController {
             userId: session.userId,
             cardId: cardId,
             setId: card.setId,
-            subsetId: card.subsetId,
             isCorrect: correctAnswer,
             created: new Date()
         });
@@ -410,14 +360,17 @@ export default class ServerController {
             }
         }
 
-        let subsetId = record.subsetId;
+        let directionSourceToTarget = Math.random() < 0.5;
 
-        // console.log('4 ' + subsetId + ' ' + typeof subsetId);
+        let recordTarget = directionSourceToTarget ? record.target : record.source;
+        let recordTargetLength = recordTarget.length;
+
+        // console.log('4 ' + setId + ' ' + typeof setId);
 
         let allTargets = cards
-            .filter(r => !r._id.equals(record._id) && r.subsetId.equals(subsetId))
-            .map(r => ({text: r.target, id: r.answerId }))
-            .sort((a, b) => (Math.abs(a.text.length-record.target.length)-Math.abs(b.text.length-record.target.length)));
+            .filter(r => !r._id.equals(record._id))
+            .map(r => ({text: directionSourceToTarget ? r.target : r.source, id: r.answerId }))
+            .sort((a, b) => (Math.abs(a.text.length-recordTargetLength)-Math.abs(b.text.length-recordTargetLength)));
 
         //console.log(record.target);
         //console.log(JSON.stringify(allTargets, null, ' '));
@@ -439,8 +392,8 @@ export default class ServerController {
             allTargets.splice(index, 1);
         }
 
-        targets.splice(Math.floor(Math.random()*4), 0, {
-            text: record.target,
+        targets.splice(Math.floor(Math.random()*targets.length+1), 0, {
+            text: directionSourceToTarget ? record.target : record.source,
             id: record.answerId
         });
 
@@ -448,7 +401,7 @@ export default class ServerController {
 
         return {
             items: targets,
-            source: record.source,
+            source: directionSourceToTarget ? record.source : record.target,
             comment: record.comment,
             id: record._id
         };

@@ -46,14 +46,12 @@ export default class BackendApi {
     }
 
     static async addCard(setId,
-                         subsetId,
                          source,
                          target,
                          comment) {
 
         let response = await BackendApi.execute('/addCard', {
             setId,
-            subsetId,
             source,
             target,
             comment
@@ -62,29 +60,10 @@ export default class BackendApi {
         return response.id;
     }
 
-    static async addSubset(setId, name) {
-
-        let response = await BackendApi.execute('/addSubset', {
-            setId,
-            name
-        });
-
-        return response.id;
-    }
-
-    static async getSubsets(setId) {
-
-        let response = await BackendApi.execute('/subsets', {
-            setId
-        });
-
-        return response.subsets;
-    }
-
-    static async getCards(subsetId) {
+    static async getCards(setId) {
 
         let response = await BackendApi.execute('/cards', {
-            subsetId
+            setId
         });
 
         return response.cards;

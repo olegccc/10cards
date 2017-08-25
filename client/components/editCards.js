@@ -1,11 +1,10 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import { withRouter } from 'react-router'
-import SubsetActions from '../actions/subset'
 import TextField from 'material-ui/TextField'
-import RaisedButton from 'material-ui/RaisedButton'
 import IconButton from 'material-ui/IconButton'
 import RemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline'
+import BackendApi from '../utils/backendApi'
 
 class EditCards extends React.Component {
 
@@ -13,32 +12,22 @@ class EditCards extends React.Component {
         super(props);
 
         this.state = {
-            subsetName: '',
             cards: [],
             filter: ''
         };
 
-        this.getSubsets(props);
         this.getCards(props);
     }
 
-    async getSubsets(props) {
-        let subsets = await SubsetActions.getSubsets(props.setId);
-        let subset = subsets.find(s => s.id === props.subsetId);
-        this.setState({
-            subsetName: subset.name
-        });
-    }
-
     async getCards(props) {
-        let cards = await SubsetActions.getCards(props.subsetId);
+        let cards = await BackendApi.getCards(props.setId);
         this.setState({
             cards
         });
     }
 
     async deleteCard(id) {
-        await SubsetActions.deleteCard(id);
+        await BackendApi.deleteCard(id);
         await this.getCards(this.props);
     }
 
@@ -57,7 +46,6 @@ class EditCards extends React.Component {
             <div className="breadcrumbs">
                 <div className="item"><a href="#/settings">Settings</a></div>
                 <div className="item"><a href={'#/settings/set/'+this.props.selectedSet.id}>{this.props.selectedSet.name}</a></div>
-                <div className="item"><a href={'#/settings/set/'+this.props.setId+'/subset/'+this.props.subsetId}>{this.state.subsetName}</a></div>
                 <div className="item">Edit Cards</div>
             </div>
             <div className="section">Edit Cards</div>
@@ -101,15 +89,14 @@ class EditCards extends React.Component {
 
 const mapStateToProps = ({set}, props) => {
 
-    let {setId, subsetId} = props.routeParams;
+    let {setId} = props.routeParams;
     let sets = set.get('sets');
 
     let selectedSet = sets.find(set => set.id === setId) || {};
 
     return {
         selectedSet,
-        setId,
-        subsetId
+        setId
     };
 };
 

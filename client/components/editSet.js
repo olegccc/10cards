@@ -1,55 +1,34 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import { withRouter } from 'react-router'
-import SubsetActions from '../actions/subset'
-import TextField from 'material-ui/TextField';
-import RaisedButton from 'material-ui/RaisedButton';
+import TextField from 'material-ui/TextField'
+import RaisedButton from 'material-ui/RaisedButton'
+import BackendApi from '../utils/backendApi'
+
+const isBlank = str => !str || /^\s*$/.test(str);
 
 class EditSet extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            subsets: [],
-            addNewSubset: false,
-            newSubsetName: ''
+            source: '',
+            target: '',
+            comment: '',
         };
-
-        this.initialize(props);
     }
 
-    async initialize(props) {
-
-        let subsets = await SubsetActions.getSubsets(props.routeParams.id);
+    async addCard() {
+        let { source, target, comment } = this.state;
+        let { setId } = this.props;
 
         this.setState({
-            subsets
-        });
-    }
-
-    toggleCreateSubset() {
-        this.setState({
-            addNewSubset: !this.state.addNewSubset
-        });
-    }
-
-    editSubset(id) {
-        this.props.router.push('/settings/sets/' + id);
-    }
-
-    async createSubset() {
-
-        let subsetName = this.state.newSubsetName;
-        let setId = this.props.routeParams.id;
-
-        this.setState({
-            newSubsetName: '',
-            addNewSubset: false
+            source: '',
+            target: '',
+            comment: ''
         });
 
-        let insertedId = await SubsetActions.addSubset(setId, subsetName);
-
-        this.props.router.push('/settings/set/' + setId + '/subset/' + insertedId);
+        await BackendApi.addCard(setId, source, target, comment);
     }
 
     renderBody() {
@@ -58,35 +37,47 @@ class EditSet extends React.Component {
                 <div className="item"><a href="#/settings">Settings</a></div>
                 <div className="item">Edit set '{this.props.selectedSet.name}'</div>
             </div>
-            <div className="section">Edit Subsets</div>
 
+            <div className="section">Add Card</div>
             <div>
-                <p>
-                    Note that if you define exactly two subsets they can be used together:
-                    <ul>
-                        <li>answer added to one subset can be
-                            automatically added as question to second subset and vice versa</li>
-                        <li>If you define also source and target languages you can get automatic translations</li>
-                    </ul>
-                </p>
+                <TextField
+                    hintText="Source"
+                    style={{fontSize: '3vh', height: '6vh'}}
+                    hintStyle={{ bottom: '2vh'}}
+                    value={this.state.source}
+                    fullWidth={true}
+                    onChange={(event, value) => this.setState({ source: value })}
+                />
+                <TextField
+                    hintText="Target"
+                    style={{fontSize: '3vh', height: '6vh'}}
+                    hintStyle={{ bottom: '2vh'}}
+                    value={this.state.target}
+                    fullWidth={true}
+                    onChange={(event, value) => this.setState({ target: value })}
+                />
+                <TextField
+                    hintText="Comment"
+                    style={{fontSize: '3vh', height: '6vh'}}
+                    hintStyle={{ bottom: '2vh'}}
+                    value={this.state.comment}
+                    fullWidth={true}
+                    onChange={(event, value) => this.setState({ comment: value })}
+                />
+                <RaisedButton
+                    label="Add card"
+                    primary={true}
+                    disabled={isBlank(this.state.source) || isBlank(this.state.target)}
+                    onTouchTap={() => this.addCard()}
+                    labelStyle={{fontSize: '3vh'}}
+                    buttonStyle={{height: '5vh'}}
+                    fullWidth={true} />
             </div>
 
-            <div className="list">
-                {this.state.subsets.map(subset => (
-                    <div className="item" key={subset.id}>
-                        <a href={'#/settings/set/' + this.props.setId + '/subset/' + subset.id}>{subset.name}</a>
-                    </div>
-                ))}
-                <div className="item"><a onTouchTap={() => this.toggleCreateSubset()}>Add new subset</a></div>
-            </div>
-            { this.state.addNewSubset ? <div className="new-set">
-                <TextField
-                    hintText="Name"
-                    value={this.state.newSubsetName}
-                    onChange={(event, value) => this.setState({ newSubsetName: value })}
-                />
-                <RaisedButton label="Add" primary={true} disabled={!this.state.newSubsetName} onTouchTap={() => this.createSubset()} />
-            </div> : null }
+            <div className="section">Cards</div>
+
+            <div><a href={ '#/settings/set/' + this.props.setId + '/cards'} >Edit Cards</a></div>
+
         </div>;
     }
 
