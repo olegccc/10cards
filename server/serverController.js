@@ -304,7 +304,7 @@ export default class ServerController {
         if (cards.length === 0) {
             return {
                 items: [],
-                source: 'No cards'
+                id: -1
             };
         }
 

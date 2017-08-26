@@ -8,18 +8,26 @@ import Answer from './answer'
 class Dashboard extends React.Component {
 
     componentDidMount() {
-        if (this.props.loggedIn && !this.props.card.source) {
+        if (this.props.loggedIn && !this.props.card.cardId) {
             this.props.dispatch(CardActions.getNext());
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.loggedIn && !this.props.loggedIn && this.props.card && !this.props.card.source) {
+        if (nextProps.loggedIn && !this.props.loggedIn) {
             this.props.dispatch(CardActions.getNext());
         }
     }
 
     render() {
+
+        if (this.props.card.cardId === -1) {
+            return <div style={{ marginTop: '2em'}}>
+                <p>There are no cards defined. Please add cards in <a href="/#/settings">settings</a>.</p>
+            </div>
+        }
+
+
         return this.props.card.correctAnswer ? <Answer {...this.props.card} /> : <Card {...this.props.card} />;
     }
 }
