@@ -19,14 +19,14 @@ class Header extends React.Component {
                             onTouchTap={() => router.push('/')}
                             className="logo"/>
                     </ToolbarGroup>
-                    <IconButton
+                    {this.props.loggedIn ? <IconButton
                         iconStyle={{ width: '2em', height: '2em', color: 'rgba(0,0,0,0.4)' }}
                         style={{ width: '4em', height: '4em', padding: '1em', fontSize: '1em' }}
                         color="contrast"
                         aria-label="Menu"
                         onTouchTap={() => router.push('/settings')}>
                         <MenuIcon />
-                    </IconButton>
+                    </IconButton> : null}
                 </Toolbar>
                 {this.props.error ? <div className="error">{this.props.error}</div> : null}
             </div>
@@ -36,7 +36,8 @@ class Header extends React.Component {
 
 const mapStateToProps = ({state}) => {
     return {
-        error: state.get('error')
+        error: state.get('error'),
+        loggedIn: state.get('loggedIn')
     };
 };
 
