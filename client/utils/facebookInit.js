@@ -6,29 +6,29 @@ export default class FacebookInit {
 
             window.fbAsyncInit = function() {
 
-                FB.init({
-                    appId: '161901184376578',
-                    cookie: true,
-                    xfbml: true,
-                    version: 'v2.8'
-                });
+                try {
+                    FB.init({
+                        appId: '161901184376578',
+                        cookie: true,
+                        xfbml: true,
+                        version: 'v2.8'
+                    });
 
-                FB.AppEvents.logPageView();
+                    FB.AppEvents.logPageView();
 
-                FB.getLoginStatus(function(response) {
-                    resolve(response);
-                }.bind(this));
-            }.bind(this);
+                    FB.getLoginStatus(resolve);
 
-            // Load the SDK asynchronously
-            (function(d, s, id) {
-                var js, fjs = d.getElementsByTagName(s)[0];
-                if (d.getElementById(id)) return;
-                js = d.createElement(s); js.id = id;
-                js.src = "//connect.facebook.net/en_US/sdk.js";
-                fjs.parentNode.insertBefore(js, fjs);
-            }(document, 'script', 'facebook-jssdk'));
+                } catch (error) {
+                    reject(error);
+                }
 
+            };
+
+            let scriptElement = document.createElement('script');
+            scriptElement.src = "//connect.facebook.net/en_US/sdk.js";
+
+            let fjs = document.getElementsByTagName('script')[0];
+            fjs.parentNode.insertBefore(scriptElement, fjs);
         });
     }
 

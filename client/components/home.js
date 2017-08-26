@@ -20,7 +20,7 @@ class Home extends React.Component {
 
         if (!this.props.loggedIn) {
             return (<div style={{ marginTop: '6em'}}>
-                <p>You have not logged in. Please click Login button to start.</p>
+                <p>You are not logged in. Please click Login button to start.</p>
                 <div>
                     <RaisedButton
                         labelStyle={{ fontSize: '1em'}}
