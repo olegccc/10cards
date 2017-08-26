@@ -260,3 +260,22 @@ body {
     font-size: 1em;
   }
 }
+
+@media screen and (max-height: 45em) {
+  .home {
+    font-size: 1.7em;
+  }
+}
+
+@media screen and (max-height: 35em) {
+  .home {
+    font-size: 1.3em;
+  }
+}
+
+@media screen and (max-height: 27em) {
+  .home {
+    font-size: 1em;
+    min-height: 340px;
+  }
+}
