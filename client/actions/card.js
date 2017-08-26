@@ -1,5 +1,5 @@
 import StateActions from '../actions/state'
-import Configuration from '../utils/configuration'
+import SetActions from '../actions/set'
 import BackendApi from '../utils/backendApi'
 
 export default class Card {
@@ -7,6 +7,7 @@ export default class Card {
     static SET_CARD = 'set_cart';
     static SET_CHOICE = 'set_choice';
     static SET_ANSWER = 'set_answer';
+    static RESET_CARD = 'reset_card';
 
     static setChoice(choiceId) {
 
@@ -38,9 +39,11 @@ export default class Card {
 
             dispatch(StateActions.onStartLoading());
 
-            let lastAnswers = getState().card.get('lastAnswers').toArray();
+            let { card, set } = getState();
 
-            let setId = Configuration.getSetId();
+            let lastAnswers = card.get('lastAnswers').toArray();
+
+            let setId = set.get('setId');
 
             if (!setId) {
                 let sets = await BackendApi.getSets();
@@ -53,7 +56,7 @@ export default class Card {
                 }
 
                 setId = sets[0].id;
-                Configuration.setSetId(setId);
+                dispatch(SetActions.setCurrentSet(setId));
             }
 
             const response = await BackendApi.getCard(lastAnswers, setId);
@@ -69,6 +72,14 @@ export default class Card {
             dispatch(StateActions.onFinishLoading());
         };
 
+    }
+
+    static reset() {
+        return dispatch => {
+            dispatch({
+                type: Card.RESET_CARD
+            });
+        }
     }
 
 }

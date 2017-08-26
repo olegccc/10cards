@@ -4,6 +4,10 @@ import { withRouter } from 'react-router'
 import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import SetActions from '../actions/set'
+import RadioButtonChecked from 'material-ui/svg-icons/toggle/radio-button-checked'
+import RadioButtonUnchecked from 'material-ui/svg-icons/toggle/radio-button-unchecked'
+import IconButton from 'material-ui/IconButton'
+import Configuration from "../utils/configuration";
 
 class Settings extends React.Component {
 
@@ -34,11 +38,16 @@ class Settings extends React.Component {
     }
 
     renderBody() {
+
         return <div>
             <div className="section">Sets</div>
             <div className="list">
                 {this.props.sets.map(set => (
                     <div className="item" key={set.id}>
+                        <IconButton>
+                            { set.id === this.props.setId ? <RadioButtonChecked/> : <RadioButtonUnchecked
+                                onTouchTap={() => this.props.dispatch(SetActions.setCurrentSet(set.id))} /> }
+                        </IconButton>
                         <a href={'#/settings/set/' + set.id}>{set.name}</a>
                     </div>
                 ))}
@@ -62,7 +71,8 @@ class Settings extends React.Component {
 
 const mapStateToProps = ({set}) => {
     return {
-        sets: set.get('sets')
+        sets: set.get('sets'),
+        setId: set.get('setId')
     };
 };
 

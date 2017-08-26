@@ -1,9 +1,9 @@
-import React from 'react';
-import {Toolbar, ToolbarGroup, ToolbarTitle} from 'material-ui/Toolbar';
-import IconButton from 'material-ui/IconButton';
-import MenuIcon from 'material-ui/svg-icons/navigation/menu';
-import {connect} from 'react-redux';
-import { withRouter } from 'react-router';
+import React from 'react'
+import {Toolbar, ToolbarGroup, ToolbarTitle} from 'material-ui/Toolbar'
+import IconButton from 'material-ui/IconButton'
+import MenuIcon from 'material-ui/svg-icons/navigation/menu'
+import {connect} from 'react-redux'
+import { withRouter } from 'react-router'
 
 class Header extends React.Component {
 

@@ -301,6 +301,13 @@ export default class ServerController {
             setId
         }).toArray();
 
+        if (cards.length === 0) {
+            return {
+                items: [],
+                source: 'No cards'
+            };
+        }
+
         // get last 5 answers for each card
 
         let answers = await this.db.collection('answers').aggregate([

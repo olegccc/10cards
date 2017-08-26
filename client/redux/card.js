@@ -14,6 +14,15 @@ const defaultState = Map({
 function reducer(state = defaultState, action) {
 
     switch (action.type) {
+        case CardActions.RESET_CARD:
+            return state.merge({
+                cardId: null,
+                items: [],
+                source: '',
+                comment: '',
+                correctAnswer: null,
+                selectedAnswer: null
+            });
         case CardActions.SET_CARD:
             return state.merge({
                 cardId: action.cardId,
