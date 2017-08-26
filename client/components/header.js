@@ -12,14 +12,19 @@ class Header extends React.Component {
 
         return (
             <div className="header">
-                <Toolbar style={{ backgroundColor: 'white'}}>
+                <Toolbar style={{ backgroundColor: 'inherit'}}>
                     <ToolbarGroup>
                         <ToolbarTitle
                             text="10 cards"
                             onTouchTap={() => router.push('/')}
                             className="logo"/>
                     </ToolbarGroup>
-                    <IconButton color="contrast" aria-label="Menu" onTouchTap={() => router.push('/settings')}>
+                    <IconButton
+                        iconStyle={{ width: '2em', height: '2em', color: 'rgba(0,0,0,0.4)' }}
+                        style={{ width: '4em', height: '4em', padding: '1em', fontSize: '1em' }}
+                        color="contrast"
+                        aria-label="Menu"
+                        onTouchTap={() => router.push('/settings')}>
                         <MenuIcon />
                     </IconButton>
                 </Toolbar>

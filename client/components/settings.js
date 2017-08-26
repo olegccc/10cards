@@ -13,6 +13,8 @@ class Settings extends React.Component {
             addNewSet: false,
             newSetName: ''
         };
+
+        props.dispatch(SetActions.refresh());
     }
 
     toggleCreateSet() {
@@ -33,14 +35,14 @@ class Settings extends React.Component {
 
     renderBody() {
         return <div>
-            <div className="section">Edit Sets</div>
+            <div className="section">Sets</div>
             <div className="list">
                 {this.props.sets.map(set => (
                     <div className="item" key={set.id}>
                         <a href={'#/settings/set/' + set.id}>{set.name}</a>
                     </div>
                 ))}
-                <div className="item"><a onTouchTap={() => this.toggleCreateSet()}>Add new set</a></div>
+                <div className="item" style={{ marginTop: '0.5em'}}><a onTouchTap={() => this.toggleCreateSet()}>Add new set</a></div>
             </div>
             { this.state.addNewSet ? <div className="new-set">
                 <TextField

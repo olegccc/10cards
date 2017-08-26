@@ -11,7 +11,9 @@ const ALL_METHODS = [
     'post:addSet',
     'post:addCard',
     'post:cards:getCards',
-    'post:deleteCard'
+    'post:deleteCard',
+    'post:setStatistics:getSetStatistics',
+    'post:deleteSet'
 ];
 
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
@@ -126,6 +128,67 @@ export default class ServerController {
                 id: set._id,
                 name: set.name
             }))
+        };
+    }
+
+    async getSetStatistics(req) {
+
+        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
+            throw Error('Set is not specified');
+        }
+
+        let session = await this.getSession(req);
+        let setId = ObjectId(req.body.setId);
+
+        let set = await this.db.collection('sets').findOne({
+            _id: setId
+        });
+
+        if (!set || set.userId !== session.userId) {
+            throw Error('Cannot find set');
+        }
+
+        let count = await this.db.collection('cards').count({
+            setId
+        });
+
+        return {
+            name: set.name,
+            count
+        };
+    }
+
+    async deleteSet(req) {
+
+        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
+            throw Error('Set is not specified');
+        }
+
+        let session = await this.getSession(req);
+        let setId = ObjectId(req.body.setId);
+
+        let set = await this.db.collection('sets').findOne({
+            _id: setId
+        });
+
+        if (!set || set.userId !== session.userId) {
+            throw Error('Cannot find set');
+        }
+
+        let count = await this.db.collection('cards').count({
+            setId
+        });
+
+        if (count > 0) {
+            throw Error('Cannot delete non-empty set');
+        }
+
+        await this.db.collection('sets').removeOne({
+            _id: setId
+        });
+
+        return {
+            success: true
         };
     }
 

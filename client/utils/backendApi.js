@@ -75,4 +75,17 @@ export default class BackendApi {
             cardId
         });
     }
+
+    static async getSetStatistics(setId) {
+
+        return await BackendApi.execute('/setStatistics', {
+            setId
+        });
+    }
+
+    static async deleteSet(setId) {
+        return await BackendApi.execute('deleteSet', {
+            setId
+        });
+    }
 }

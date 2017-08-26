@@ -11,11 +11,29 @@ class EditSet extends React.Component {
 
     constructor(props) {
         super(props);
+
         this.state = {
             source: '',
             target: '',
             comment: '',
+            statistics: null
         };
+
+        this.initialize();
+    }
+
+    async initialize() {
+        let statistics = await BackendApi.getSetStatistics(this.props.setId);
+        this.setState({
+            statistics
+        });
+    }
+
+    async deleteSet() {
+
+        await BackendApi.deleteSet(this.props.setId);
+
+        this.props.router.push('/settings');
     }
 
     async addCard() {
@@ -69,14 +87,25 @@ class EditSet extends React.Component {
                     primary={true}
                     disabled={isBlank(this.state.source) || isBlank(this.state.target)}
                     onTouchTap={() => this.addCard()}
-                    labelStyle={{fontSize: '3vh'}}
-                    buttonStyle={{height: '5vh'}}
+                    labelStyle={{fontSize: '1em'}}
+                    buttonStyle={{height: '2em', marginTop: '0.5em'}}
                     fullWidth={true} />
             </div>
 
             <div className="section">Cards</div>
 
-            <div><a href={ '#/settings/set/' + this.props.setId + '/cards'} >Edit Cards</a></div>
+            <div><a href={ '#/settings/set/' + this.props.setId + '/cards'} >Edit Cards{ this.state.statistics ? (' (' + this.state.statistics.count + ')') : ''}</a></div>
+
+            {this.state.statistics && !this.state.statistics.count ? <div>
+                <div className="section">Manage</div>
+                <RaisedButton
+                    label="Delete set"
+                    onTouchTap={() => this.deleteSet()}
+                    labelStyle={{fontSize: '1em'}}
+                    buttonStyle={{height: '2em', marginTop: '0.5em'}}
+                    fullWidth={true} />
+
+            </div> : null}
 
         </div>;
     }

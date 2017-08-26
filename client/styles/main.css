@@ -9,7 +9,7 @@ body {
 }
 
 .home {
-  padding: 1em;
+  padding: 0.5em;
   font-size: 2em;
 }
 
@@ -27,6 +27,7 @@ body {
 
 .choice, .answer {
   flex: 1 1;
+  user-select: none;
 }
 
 .choice .text {
@@ -45,11 +46,11 @@ body {
 }
 
 .settings {
-  padding: 3em 1em 1em;
+  padding: 2em 1em 1em;
   font-size: 2em;
 
   .section {
-    margin: 0 0 1em;
+    margin: 0.5em 0;
     font-size: 1.5em;
     border-bottom: solid 1px #ccc;
   }
@@ -105,10 +106,13 @@ body {
   align-items: center;
   font-family: 'Open Sans', sans-serif;
 
+  transition: 1s;
+
   .source {
     font-size: 2em;
     font-weight: bold;
-    padding: 0 1em;
+    padding: 0 0.3em;
+    cursor: default;
   }
 
   .choice + .choice {
@@ -153,6 +157,10 @@ body {
   cursor: pointer;
 
   .choice {
+
+    .text {
+      border: none;
+    }
 
     &.correct .text {
       background-color: #99ffcc;
@@ -234,4 +242,21 @@ body {
     width: 800px;
   }
 
+}
+
+@media screen and (max-width: 600px) {
+  .home {
+    font-size: 1.6em;
+  }
+}
+
+@media screen and (max-width: 400px) {
+
+  body {
+    min-width: 250px;
+  }
+
+  .home {
+    font-size: 1em;
+  }
 }
