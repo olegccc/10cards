@@ -1,10 +1,10 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import { withRouter } from 'react-router'
-import RaisedButton from 'material-ui/RaisedButton';
 import Authenticate from '../utils/authenticate'
-import CircularProgress from 'material-ui/CircularProgress';
 import Dashboard from './dashboard'
+import ProgressBar from 'react-toolbox/lib/progress_bar';
+import { Button } from 'react-toolbox/lib/button'
 
 class Home extends React.Component {
 
@@ -22,11 +22,11 @@ class Home extends React.Component {
             return (<div style={{ marginTop: '6em'}}>
                 <p>You are not logged in. Please click Login button to start.</p>
                 <div>
-                    <RaisedButton
-                        labelStyle={{ fontSize: '1em'}}
-                        buttonStyle={{ height: '2em'}}
+                    <Button
+                        raised
+                        primary
+                        style={{ fontSize: '1em', width: '100%' }}
                         label="Login with Facebook"
-                        primary={true}
                         onTouchTap={() => this.login()}/>
                 </div>
             </div>);
@@ -40,7 +40,7 @@ class Home extends React.Component {
         if (this.props.loading) {
             return <div className="loading">
                 <div className="space"></div>
-                <CircularProgress size={100} thickness={7} />
+                <ProgressBar type="circular" mode="indeterminate" multicolor className="progress" />
                 <div className="space"></div>
             </div>;
         }

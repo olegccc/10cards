@@ -1,6 +1,5 @@
 import React from 'react';
 import {connect} from 'react-redux';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import SetActions from '../actions/set'
 import Authenticate from '../utils/authenticate'
 
@@ -22,9 +21,9 @@ class Root extends React.Component {
     render() {
 
         return (
-            <MuiThemeProvider>
+            <div className="router">
                 {Router}
-            </MuiThemeProvider>
+            </div>
         );
     }
 }

@@ -1,7 +1,5 @@
-import React from 'react';
-import {connect} from 'react-redux';
-
-import Header from './header';
+import React from 'react'
+import Header from './header'
 
 const Layout = ({ main }) =>
     (

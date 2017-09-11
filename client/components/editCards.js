@@ -1,10 +1,12 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import { withRouter } from 'react-router'
-import TextField from 'material-ui/TextField'
-import IconButton from 'material-ui/IconButton'
-import RemoveCircleOutline from 'material-ui/svg-icons/content/remove-circle-outline'
 import BackendApi from '../utils/backendApi'
+import Input from 'react-toolbox/lib/input';
+import { Table, TableHead, TableRow, TableCell } from 'react-toolbox/lib/table';
+import { Button } from 'react-toolbox/lib/button'
+
+const ItemsPerPage = 5;
 
 class EditCards extends React.Component {
 
@@ -13,72 +15,178 @@ class EditCards extends React.Component {
 
         this.state = {
             cards: [],
-            filter: ''
+            filteredCards: [],
+            records: [],
+            pages: [],
+            page: 0,
+            filter: '',
+            selected: []
         };
 
         this.getCards(props);
     }
 
-    async getCards(props) {
-        let cards = await BackendApi.getCards(props.setId);
-        this.setState({
-            cards
-        });
+    getFilteredCards(cards, filter) {
+
+        let filteredCards = cards;
+
+        if (filter) {
+            let filterLowercase = filter.toLowerCase();
+            filteredCards = cards.filter(card => card.source.toLowerCase().includes(filterLowercase) ||
+                card.target.toLowerCase().includes(filterLowercase) ||
+                card.comment.toLowerCase().includes(filterLowercase));
+        }
+
+        return filteredCards;
     }
 
-    async deleteCard(id) {
-        await BackendApi.deleteCard(id);
+    getPages(state) {
+
+        const pageCount = Math.ceil(state.filteredCards.length/ItemsPerPage);
+
+        let pages;
+
+        if (pageCount < 5) {
+            pages = Array.from(new Array(pageCount).keys())
+        } else {
+            pages = [];
+            pages.push(0);
+            if (state.page > 1) {
+                pages.push(state.page-1);
+            }
+            if (state.page > 0) {
+                pages.push(state.page);
+            }
+            if (state.page + 1 < pageCount-1) {
+                pages.push(state.page+1);
+            }
+            if (state.page < pageCount-1) {
+                pages.push(pageCount-1);
+            }
+        }
+
+        return pages;
+    }
+
+    getRecords(page, state) {
+        const start = page * ItemsPerPage;
+        let end = start + ItemsPerPage;
+        if (end > state.filteredCards.length) {
+            end = state.filteredCards.length;
+        }
+        return state.filteredCards.slice(start, end);
+    }
+
+    async getCards(props) {
+
+        const cards = await BackendApi.getCards(props.setId);
+
+        const state = {
+            cards,
+            page: 0,
+            selected: [],
+            filteredCards: this.getFilteredCards(cards, this.state.filter)
+        };
+
+        state.pages = this.getPages(state);
+        state.records = this.getRecords(0, state);
+
+        this.setState(state);
+    }
+
+    async deleteCards() {
+
+        for (let id in this.state.selected) {
+            await BackendApi.deleteCard(id);
+        }
+
         await this.getCards(this.props);
+    }
+
+    selectCard(selected) {
+        this.setState({selected: selected.map(item => this.state.filteredCards[item].id)})
+    }
+
+    setFilter(filter) {
+
+        const state = {
+            filteredCards: this.getFilteredCards(this.state.cards, filter),
+            filter,
+            page: 0
+        };
+
+        state.records = this.getRecords(0, state);
+        state.pages = this.getPages(state);
+
+        this.setState(state);
+    }
+
+    setPage(page) {
+
+        const state = {
+            records: this.getRecords(page, this.state),
+            page,
+            filteredCards: this.state.filteredCards
+        };
+
+        state.pages = this.getPages(state);
+
+        this.setState(state);
     }
 
     renderBody() {
 
-        let cards = this.state.cards;
+        return <div className="settings">
 
-        if (this.state.filter) {
-            let filter = this.state.filter.toLowerCase();
-            cards = cards.filter(card => card.source.toLowerCase().includes(filter) ||
-                card.target.toLowerCase().includes(filter) ||
-                card.comment.toLowerCase().includes(filter));
-        }
-
-        return <div>
             <div className="breadcrumbs">
                 <div className="item"><a href="#/settings">Settings</a></div>
                 <div className="item"><a href={'#/settings/set/'+this.props.selectedSet.id}>{this.props.selectedSet.name}</a></div>
                 <div className="item">Edit Cards</div>
             </div>
-            <div className="section">Edit Cards</div>
+
+            <h2>Edit Cards</h2>
+
             <div className="filter">
-                <TextField
-                    hintText="Apply filter"
-                    style={{fontSize: '3vh', height: '6vh'}}
+
+                <Input
+                    type="text"
+                    label={<span style={{ fontSize: '0.8em' }}>Filter</span>}
+                    style={{ fontSize: '1em', width: '100%' }}
                     value={this.state.filter}
-                    fullWidth={true}
-                    onChange={(event, value) => this.setState({filter: value})}
+                    onChange={value => this.setFilter(value)}
                 />
             </div>
-            <div className="cards">
-                <div className="record-header">
-                    <div className="column">Source</div>
-                    <div className="column">Target</div>
-                    <div className="column">Comment</div>
-                    <div className="actions"></div>
-                </div>
-                {cards.map(card => (<div className="record" key={card.id}>
-                    <div className="column">{card.source}</div>
-                    <div className="column">{card.target}</div>
-                    <div className="column">{card.comment}</div>
-                    <div className="actions">
-                        <IconButton tooltip="Remove Card" touch={true} tooltipPosition="bottom-left" onTouchTap={() => this.deleteCard(card.id)}>
-                            <RemoveCircleOutline />
-                        </IconButton>
-                    </div>
-                </div>))}
-            </div>
-            <div className="paging">
 
-            </div>
+            <Table onRowSelect={selected => this.selectCard(selected)} multiSelectable>
+                <TableHead>
+                    <TableCell>Source</TableCell>
+                    <TableCell>Target</TableCell>
+                    <TableCell>Comment</TableCell>
+                </TableHead>
+
+                {this.state.records.map(card => (<TableRow selected={this.state.selected.indexOf(card.id) !== -1} key={card.id}>
+                    <TableCell>{card.source}</TableCell>
+                    <TableCell>{card.target}</TableCell>
+                    <TableCell>{card.comment}</TableCell>
+                </TableRow>))}
+
+            </Table>
+
+            {this.state.pages.length > 1 ? <ul className="paging">
+                {this.state.pages.map(page => {
+                    const selected = page === this.state.page;
+                    return <li key={page} className={selected ? ' selected' : ''} onTouchTap={() => { if (!selected) this.setPage(page) }}>
+                        {page+1}
+                </li>; })}
+            </ul> : null}
+
+            <div>{this.state.selected.length ? <Button
+                    label="Delete selected"
+                    onTouchTap={() => this.deleteCards()}
+                    raised
+                    style={{ fontSize: '1em', width: '100%', marginTop: '1em' }}
+                />
+                : null }</div>
         </div>;
     }
 

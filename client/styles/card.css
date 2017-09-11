@@ -1,0 +1,122 @@
+.card, .choices, .choice, .choice .text {
+  flex: 1 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card, .answer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Open Sans', sans-serif;
+
+  transition: 1s;
+
+  .source {
+    font-size: 2em;
+    font-weight: bold;
+    padding: 0 0.3em;
+    cursor: default;
+  }
+
+  .choice + .choice {
+    padding-top: 0.5em;
+  }
+
+  .choices {
+    padding-top: 0.5em;
+    width: 100%;
+
+    font-size: 2em;
+  }
+
+  .choice .text {
+    border-radius: 5px;
+    border: solid 1px #eee;
+    padding: 0 1em;
+    text-align: center;
+  }
+}
+
+.card {
+
+  .choice {
+    .text {
+      cursor: pointer;
+      background-color: #fcfcfc;
+      transition: background 0.3s;
+    }
+
+    &.read-only .text {
+      cursor: default;
+      background-color: white;
+      color: #ddd;
+    }
+  }
+
+}
+
+.answer {
+
+  cursor: pointer;
+
+  .choice {
+
+    .text {
+      border: none;
+    }
+
+    &.correct .text {
+      background-color: #99ffcc;
+    }
+
+    &.incorrect .text {
+      background-color: #ff99aa;
+      border: solid 5px red;
+    }
+  }
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+
+  .record-header {
+    font-weight: bold;
+
+    border-bottom: solid 1px #aaa;
+    margin-bottom: 0.5em;
+    padding-bottom: 0.2em;
+  }
+
+  .record, .record-header {
+    display: flex;
+    flex-direction: row;
+
+    .column {
+      flex: 1 1;
+    }
+
+    .actions {
+      width: 2em;
+    }
+  }
+
+  .record + .record {
+    border-top: solid 1px #eee;
+  }
+}
+
+.choice, .answer {
+  flex: 1 1;
+  user-select: none;
+}
+
+.choice .text {
+  display: flex;
+  flex-direction: column;
+
+  .space {
+    flex: 1 1;
+  }
+}

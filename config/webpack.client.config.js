@@ -1,16 +1,12 @@
-var config = require('../config/config');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var webpack = require('webpack');
 var path = require('path');
-var autoprefixer = require('autoprefixer');
-var precss = require('precss');
-var postcssImport = require('postcss-import');
-var fontMagician = require('postcss-font-magician');
-var colorGuard = require('colorguard');
 
 var projectPath = path.join(__dirname, '..');
 
 module.exports = function (grunt, module, release) {
+
+    var stylesPath = projectPath + '/' + module + '/styles';
 
     var sourcePath = [
         path.join(projectPath, module),
@@ -35,19 +31,62 @@ module.exports = function (grunt, module, release) {
             filename: module + '.js'
         },
         module: {
-            loaders: [
+            rules: [
                 {
                     test: /\.jsx?$/,
                     include: sourcePath,
-                    loader: 'babel',
-                    query: {
-                        presets: ['react', 'es2015', 'stage-0']
-                    }
+                    use: [{
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['react', 'es2015', 'stage-0']
+                        }
+                    }]
                 },
                 {
                     test: /\.css$/,
-                    include: sourcePath,
-                    loaders: ["style", "css", "postcss"]
+                    include: path.join(projectPath, 'client/styles'),
+                    use: [
+                        'style-loader',
+                        { loader: 'css-loader', options: {
+                            importLoaders: 1,
+                            //sourceMap: !release
+                        }},
+                        { loader: 'postcss-loader', options: {
+                            plugins: function() {
+                                return [
+                                    require('autoprefixer'),
+                                    require('postcss-import')({
+                                        root: projectPath
+                                    }),
+                                    require('precss')()
+                                ];
+                            }
+                        }}
+                    ]
+                },
+                {
+                    test: /\.css$/,
+                    exclude: sourcePath,
+                    use: [
+                        'style-loader',
+                        { loader: 'css-loader', options: {
+                            modules: true,
+                            importLoaders: 1
+                        }},
+                        { loader: 'postcss-loader', options: {
+                            plugins: function() {
+                                return [
+                                    require('postcss-cssnext')({
+                                        features: {
+                                            customProperties: {
+                                                variables: require(path.join(projectPath, 'config', 'react-toolbox.config'))
+                                            }
+                                        }
+                                    })
+                                ]
+                            }
+                        }}
+                    ]
                 },
                 {
                     test: /\.png$/,
@@ -72,17 +111,6 @@ module.exports = function (grunt, module, release) {
             children: false,
             assets: false,
             colors: true
-        },
-        postcss: function(webpack) {
-            return [
-                autoprefixer({ browsers: ['last 2 versions'] }),
-                postcssImport({
-                    addDependencyTo: webpack
-                }),
-                precss,
-                colorGuard,
-                fontMagician
-            ];
         }
     };
 
@@ -101,11 +129,10 @@ module.exports = function (grunt, module, release) {
                 warnings: true
             }
         }));
-        ret.sourcemaps = false;
-        ret.debug = false;
     } else {
-        ret.sourcemaps = true;
-        ret.debug = true;
+        ret.plugins.push(new webpack.LoaderOptionsPlugin({
+            debug: true
+        }));
         ret.devtool = 'source-map';
     }
 

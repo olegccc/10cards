@@ -83,6 +83,26 @@ export default class BackendApi {
         });
     }
 
+    static async getSetSettings(setId) {
+
+        return await BackendApi.execute('/getSetSettings', {
+            setId
+        });
+    }
+
+    static async setSetSimpleMode(setId, mode) {
+        await BackendApi.execute('/setSetSimpleMode', {
+            setId,
+            mode
+        });
+    }
+
+    static async startOver(setId) {
+        await BackendApi.execute('/startOver', {
+            setId
+        });
+    }
+
     static async deleteSet(setId) {
         return await BackendApi.execute('deleteSet', {
             setId

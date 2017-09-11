@@ -1,13 +1,10 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import { withRouter } from 'react-router'
-import TextField from 'material-ui/TextField';
-import RaisedButton from 'material-ui/RaisedButton';
 import SetActions from '../actions/set'
-import RadioButtonChecked from 'material-ui/svg-icons/toggle/radio-button-checked'
-import RadioButtonUnchecked from 'material-ui/svg-icons/toggle/radio-button-unchecked'
-import IconButton from 'material-ui/IconButton'
-import Configuration from "../utils/configuration";
+import { List, ListItem, ListSubHeader } from 'react-toolbox/lib/list';
+import { Button, IconButton } from 'react-toolbox/lib/button'
+import Input from 'react-toolbox/lib/input';
 
 class Settings extends React.Component {
 
@@ -37,35 +34,41 @@ class Settings extends React.Component {
         this.props.router.push('/settings/set/' + insertedId);
     }
 
-    renderBody() {
+    render() {
 
-        return <div>
-            <div className="section">Sets</div>
+        return <div className="settings">
+            <h1>Settings</h1>
+            <h2>Sets</h2>
             <div className="list">
-                {this.props.sets.map(set => (
-                    <div className="item" key={set.id}>
-                        <IconButton>
-                            { set.id === this.props.setId ? <RadioButtonChecked/> : <RadioButtonUnchecked
-                                onTouchTap={() => this.props.dispatch(SetActions.setCurrentSet(set.id))} /> }
-                        </IconButton>
-                        <a href={'#/settings/set/' + set.id}>{set.name}</a>
-                    </div>
-                ))}
-                <div className="item" style={{ marginTop: '0.5em'}}><a onTouchTap={() => this.toggleCreateSet()}>Add new set</a></div>
+                <List selectable ripple>
+                    {this.props.sets.map(set => (
+                        <ListItem
+                            caption={set.name}
+                            key={set.id}
+                            rightIcon={ set.id === this.props.setId ? <IconButton onTouchTap={() => this.props.dispatch(SetActions.setCurrentSet(set.id))} icon='star'/> : null}
+                            onClick={() => this.props.router.push('/settings/set/' + set.id)}>
+                        </ListItem>
+                    ))}
+                    <ListItem onClick={() => this.toggleCreateSet()} caption="Add new set"/>
+                </List>
             </div>
             { this.state.addNewSet ? <div className="new-set">
-                <TextField
-                    hintText="Name"
+                <Input
+                    className="input"
+                    type='text'
+                    label={<span style={{ fontSize: '0.8em' }}>Name</span>}
+                    style={{ fontSize: '1em' }}
                     value={this.state.newSetName}
-                    onChange={(event, value) => this.setState({ newSetName: value })}
-                />
-                <RaisedButton label="Add" primary={true} disabled={!this.state.newSetName} onTouchTap={() => this.createSet()} />
+                    onChange={(value) => this.setState({ newSetName: value })} />
+                <Button
+                    label='Add'
+                    style={{ fontSize: '1em' }}
+                    primary
+                    raised
+                    disabled={!this.state.newSetName}
+                    onTouchTap={() => this.createSet()} />
             </div> : null }
         </div>;
-    }
-
-    render() {
-        return (<div className="settings">{this.renderBody()}</div>);
     }
 }
 

@@ -1,0 +1,45 @@
+html, body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  min-width: 250px;
+  flex-direction: column;
+}
+
+.root, .center, .middle, .body, #app, .router {
+  flex: 1 1;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  font-size: 1.5em;
+}
+
+@media screen and (max-width: 600px) {
+  body {
+    font-size: 1.2em;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  body {
+    font-size: 0.9em;
+  }
+}
+
+@media screen and (max-height: 27em) {
+  body {
+    min-height: 340px;
+  }
+}
+
+@media screen and (min-width: 1000px) {
+  body {
+    margin: 0 auto;
+    width: 1000px;
+  }
+}

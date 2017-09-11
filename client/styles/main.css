@@ -1,281 +1,30 @@
-html, body {
-  padding: 0;
-  margin: 0;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-}
-
-.home {
-  padding: 0.5em;
-  font-size: 2em;
-}
-
-#app {
-  flex: 1 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.root, .center, .middle, .body, .home, .card, .choices, .choice, .choice .text {
-  flex: 1 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.choice, .answer {
-  flex: 1 1;
-  user-select: none;
-}
-
-.choice .text {
-  display: flex;
-  flex-direction: column;
-
-  .space {
-    flex: 1 1;
-  }
-}
-
-.logo {
-  user-select: none;
-  cursor: pointer;
-  font-size: 2em !important;
-}
-
-.settings {
-  padding: 2em 1em 1em;
-  font-size: 2em;
-
-  .section {
-    margin: 0.5em 0;
-    font-size: 1.5em;
-    border-bottom: solid 1px #ccc;
-  }
-
-  .list {
-    .item {
-      a, a:visited {
-        color: cornflowerblue;
-        text-decoration: underline;
-        cursor: pointer;
-        user-select: none;
-      }
-    }
-
-    .item + .item {
-      margin-top: 0.5em;
-    }
-  }
-
-  .breadcrumbs {
-
-    display: flex;
-    flex-direction: row;
-    margin-bottom: 0.5em;
-
-    .item {
-      a, a:visited {
-        color: cornflowerblue;
-        text-decoration: underline;
-      }
-    }
-
-    .item + .item::before {
-      content: "::";
-      padding: 0 0.5em;
-    }
-  }
-
-  .new-set {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-
-    > * + * {
-      margin-left: 1em;
-    }
-  }
-}
-
-.card, .answer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: 'Open Sans', sans-serif;
-
-  transition: 1s;
-
-  .source {
-    font-size: 2em;
-    font-weight: bold;
-    padding: 0 0.3em;
-    cursor: default;
-  }
-
-  .choice + .choice {
-    padding-top: 0.5em;
-  }
-
-  .choices {
-    padding-top: 0.5em;
-    width: 100%;
-
-    font-size: 2em;
-  }
-
-  .choice .text {
-    border-radius: 5px;
-    border: solid 1px #eee;
-    padding: 0 1em;
-    text-align: center;
-  }
-}
-
-.card {
-
-  .choice {
-    .text {
-      cursor: pointer;
-      background-color: #fcfcfc;
-      transition: background 0.3s;
-    }
-
-    &.read-only .text {
-      cursor: default;
-      background-color: white;
-      color: #ddd;
-    }
-  }
-
-}
-
-.answer {
-
-  cursor: pointer;
-
-  .choice {
-
-    .text {
-      border: none;
-    }
-
-    &.correct .text {
-      background-color: #99ffcc;
-    }
-
-    &.incorrect .text {
-      background-color: #ff99aa;
-      border: solid 5px red;
-    }
-  }
-}
-
-.filter {
-  margin-bottom: 1.5em;
-}
-
-.paging {
-
-}
-
-.cards {
-  display: flex;
-  flex-direction: column;
-
-  .record-header {
-    font-weight: bold;
-
-    border-bottom: solid 1px #aaa;
-    margin-bottom: 0.5em;
-    padding-bottom: 0.2em;
-  }
-
-  .record, .record-header {
-    display: flex;
-    flex-direction: row;
-
-    .column {
-      flex: 1 1;
-    }
-
-    .actions {
-      width: 2em;
-    }
-  }
-
-  .record + .record {
-    border-top: solid 1px #eee;
-  }
-}
+@import "layout.css";
+@import "settings.css";
+@import "card.css";
+@import "header.css";
+@import "home.css";
 
 .loading {
   flex: 1 1;
   margin: 0 auto;
   display: flex;
-  width: 100px;
+  width: 200px;
   flex-direction: column;
   .space {
     flex: 1 1;
   }
-}
 
-.header {
-
-  position: absolute;
-  width: 100%;
-
-  .error {
-    padding: 0.5em;
-    background-color: #ff99aa;
-    font-size: 2em;
-    text-align: center;
+  .progress {
+    width: 200px;
+    height: 200px;
   }
 }
 
-@media screen and (min-width: 800px) {
+.new-set {
+  display: flex;
+  flex-direction: row;
 
-  .home {
-    margin: 0 auto;
-    width: 800px;
-  }
-
-}
-
-@media screen and (max-width: 600px) {
-  .home {
-    font-size: 1.6em;
-  }
-}
-
-@media screen and (max-width: 400px) {
-
-  body {
-    min-width: 250px;
-  }
-
-  .home {
-    font-size: 1em;
-  }
-}
-
-@media screen and (max-height: 45em) {
-  .home {
-    font-size: 1.7em;
-  }
-}
-
-@media screen and (max-height: 35em) {
-  .home {
-    font-size: 1.3em;
-  }
-}
-
-@media screen and (max-height: 27em) {
-  .home {
-    font-size: 1em;
-    min-height: 340px;
+  .input {
+    flex: 1 1;
   }
 }

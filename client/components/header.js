@@ -1,9 +1,7 @@
 import React from 'react'
-import {Toolbar, ToolbarGroup, ToolbarTitle} from 'material-ui/Toolbar'
-import IconButton from 'material-ui/IconButton'
-import MenuIcon from 'material-ui/svg-icons/navigation/menu'
 import {connect} from 'react-redux'
 import { withRouter } from 'react-router'
+import { Button } from 'react-toolbox/lib/button'
 
 class Header extends React.Component {
 
@@ -12,22 +10,13 @@ class Header extends React.Component {
 
         return (
             <div className="header">
-                <Toolbar style={{ backgroundColor: 'inherit'}}>
-                    <ToolbarGroup>
-                        <ToolbarTitle
-                            text="10 cards"
-                            onTouchTap={() => router.push('/')}
-                            className="logo"/>
-                    </ToolbarGroup>
-                    {this.props.loggedIn ? <IconButton
-                        iconStyle={{ width: '2em', height: '2em', color: 'rgba(0,0,0,0.4)' }}
-                        style={{ width: '4em', height: '4em', padding: '1em', fontSize: '1em' }}
-                        color="contrast"
-                        aria-label="Menu"
+                <div className="logo" onTouchTap={() => router.push('/')}>10 cards</div>
+                <div className="buttons">
+                    {this.props.loggedIn ? <Button
+                        icon='menu'
                         onTouchTap={() => router.push('/settings')}>
-                        <MenuIcon />
-                    </IconButton> : null}
-                </Toolbar>
+                    </Button> : null}
+                </div>
                 {this.props.error ? <div className="error">{this.props.error}</div> : null}
             </div>
         );

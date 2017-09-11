@@ -1,6 +1,6 @@
 class FetchService {
 
-    static fetch(url, payload, method, options) {
+    static async fetch(url, payload, method, options) {
 
         let newOptions = Object.assign({}, options, {
             method: method,
@@ -14,15 +14,16 @@ class FetchService {
             newOptions.headers['Content-Type']  = 'application/json';
         }
 
-        return fetch(url, newOptions).then(function(response) {
-            if (response.status !== 200) {
-                return Promise.reject(response.statusText);
-            }
-            if (response.headers.get('content-type') === 'application/json' && response.headers.get('content-length') > 0) {
-                return response.json();
-            }
-            return Promise.resolve({});
-        });
+        const response = await fetch(url, newOptions);
+
+        if (response.status !== 200) {
+            const json = await response.json();
+            throw json;
+        }
+        if (response.headers.get('content-type') === 'application/json' && response.headers.get('content-length') > 0) {
+            return await response.json();
+        }
+        return {};
     }
 
     static get(url, options) {

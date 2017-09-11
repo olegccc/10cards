@@ -13,7 +13,10 @@ const ALL_METHODS = [
     'post:cards:getCards',
     'post:deleteCard',
     'post:setStatistics:getSetStatistics',
-    'post:deleteSet'
+    'post:deleteSet',
+    'post:getSetSettings',
+    'post:setSetSimpleMode',
+    'post:startOver'
 ];
 
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
@@ -107,7 +110,8 @@ export default class ServerController {
         let result = await this.db.collection('sets').insertOne({
             userId: session.userId,
             created: new Date(),
-            name: req.body.name
+            name: req.body.name,
+            simpleMode: true
         });
 
         return {
@@ -156,6 +160,37 @@ export default class ServerController {
             name: set.name,
             count
         };
+    }
+
+    async getSetSettings(req) {
+
+        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
+            throw Error('Set is not specified');
+        }
+
+        let session = await this.getSession(req);
+        let setId = ObjectId(req.body.setId);
+
+        let set = await this.db.collection('sets').findOne({
+            _id: setId
+        });
+
+        if (!set || set.userId !== session.userId) {
+            throw Error('Cannot find set');
+        }
+
+        return {
+            name: set.name,
+            simpleMode: set.simpleMode === undefined || set.simpleMode
+        };
+    }
+
+    async setSetSimpleMode(req) {
+
+    }
+
+    async startOver(req) {
+        
     }
 
     async deleteSet(req) {

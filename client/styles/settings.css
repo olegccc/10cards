@@ -1,0 +1,121 @@
+@import "react-toolbox/lib/colors.css";
+@import "react-toolbox/lib/variables.css";
+
+.settings {
+
+  padding: 0 1em 1em;
+  font-size: 1em;
+  font-family: 'Open Sans', sans-serif;
+
+  h1 {
+    margin: 0.5em 0;
+    font-size: 1.5em;
+    color: var(--color-primary);
+  }
+
+  h2 {
+    margin: 0.5em 0;
+    font-size: 1.2em;
+    color: var(--color-primary);
+    margin-top: 1.5em;
+  }
+
+  h1 + h2 {
+    margin-top: 0;
+  }
+
+  .list {
+
+    ul {
+      padding: 0;
+      border-top: 1px solid rgba(0,0,0,0.12);
+      border-bottom: 1px solid rgba(0,0,0,0.12);
+
+      li span {
+        font-size: 1.2em;
+      }
+
+      li + li {
+        border-top: 1px solid rgba(0,0,0,0.12);
+      }
+    }
+
+    .item {
+      a, a:visited {
+        color: cornflowerblue;
+        text-decoration: underline;
+        cursor: pointer;
+        user-select: none;
+      }
+    }
+
+    .item + .item {
+      margin-top: 0.5em;
+    }
+  }
+
+  .breadcrumbs {
+
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 0.5em;
+
+    .item {
+      a, a:visited {
+        color: cornflowerblue;
+        text-decoration: underline;
+      }
+    }
+
+    .item + .item::before {
+      content: "::";
+      padding: 0 0.5em;
+    }
+  }
+
+  .new-set {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    > * + * {
+      margin-left: 1em;
+    }
+  }
+
+  ul.paging {
+    margin: 1em 0 0;
+    padding: 0;
+    list-style-type: none;
+    display: flex;
+    flex-direction: row;
+
+    li {
+      border: solid 1px #ccc;
+      border-radius: 2px;
+      padding: 0.5em 1em;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    li.selected {
+      background: #eee;
+      cursor: default;
+      user-select: none;
+    }
+
+    li + li {
+      margin-left: 0.5em;
+    }
+  }
+
+  table {
+    tr {
+      height: 2.5em;
+      th, td {
+        height: 2.5em;
+        padding-top: 0.5em;
+      }
+    }
+  }
+}

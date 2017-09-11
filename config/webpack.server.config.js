@@ -31,7 +31,7 @@ module.exports = (grunt, module, release) => {
                 {
                     test: /\.js$/,
                     //include: sourcePath,
-                    loader: 'babel',
+                    loader: 'babel-loader',
                     query: {
                         compact: true,
                         plugins: [],
@@ -40,7 +40,7 @@ module.exports = (grunt, module, release) => {
                 },
                 {
                     test: /\.json$/,
-                    loader: 'json'
+                    loader: 'json-loader'
                 }
             ]
         },
@@ -73,12 +73,10 @@ module.exports = (grunt, module, release) => {
             sourceMap: false,
             mangle: true
         }));
-        ret.sourcemaps = false;
-        ret.debug = false;
     } else {
-        ret.sourcemaps = true;
-        ret.debug = true;
-        ret.minimize = false;
+        ret.plugins.push(new webpack.LoaderOptionsPlugin({
+            debug: true
+        }));
         ret.devtool = 'source-map';
     }
 

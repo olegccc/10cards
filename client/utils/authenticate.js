@@ -16,9 +16,9 @@ export default class Authenticate {
 
             await Authenticate.finishAuth(response, dispatch);
 
-        } catch (error) {
+        } catch (response) {
             dispatch(StateActions.onLoginError());
-            dispatch(StateActions.onError(error.message));
+            dispatch(StateActions.onError(response.error || response.message));
             return false;
         }
 
@@ -70,9 +70,9 @@ export default class Authenticate {
 
             await Authenticate.finishAuth(response, dispatch);
 
-        } catch (error) {
+        } catch (response) {
             dispatch(StateActions.onLoginError());
-            dispatch(StateActions.onError(error.message));
+            dispatch(StateActions.onError(response.error || response.message));
             return false;
         }
 
