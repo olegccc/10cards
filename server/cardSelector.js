@@ -220,7 +220,7 @@ export default class CardSelector {
             if (!unansweredCards.length) {
                 return {
                     allAnswered: true,
-                    allCorrect: this.cards.filter(card => !card.correctAnswer).length > 0
+                    allCorrect: this.cards.filter(card => !card.correctAnswer).length === 0
                 };
             }
 
