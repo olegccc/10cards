@@ -9,6 +9,36 @@ export default class Card {
     static SET_ANSWER = 'set_answer';
     static RESET_CARD = 'reset_card';
 
+    static startOver() {
+
+        return async (dispatch, getState) => {
+
+            dispatch(StateActions.onStartLoading());
+
+            let { set } = getState();
+            let setId = set.get('setId');
+
+            await BackendApi.startOver(setId, false);
+
+            return Card.getNext();
+        };
+    }
+
+    static answerIncorrect() {
+
+        return async (dispatch, getState) => {
+
+            dispatch(StateActions.onStartLoading());
+
+            let { set } = getState();
+            let setId = set.get('setId');
+
+            await BackendApi.startOver(setId, true);
+
+            return Card.getNext();
+        };
+    }
+
     static setChoice(choiceId) {
 
         return async (dispatch, getState) => {
@@ -59,14 +89,9 @@ export default class Card {
                 dispatch(SetActions.setCurrentSet(setId));
             }
 
-            const response = await BackendApi.getCard(lastAnswers, setId);
-
             dispatch({
                 type: Card.SET_CARD,
-                items: response.items,
-                source: response.source,
-                comment: response.comment,
-                cardId: response.id
+                ...await BackendApi.getCard(lastAnswers, setId)
             });
 
             dispatch(StateActions.onFinishLoading());

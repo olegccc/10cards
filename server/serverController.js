@@ -2,6 +2,7 @@ import ServerUtils from './serverUtils'
 import {connect, ObjectId} from 'mongodb'
 import FetchService from '../shared/fetchService'
 import sha256 from 'js-sha256'
+import CardSelector from './cardSelector'
 
 const ALL_METHODS = [
     'post:card:getCard',
@@ -16,7 +17,8 @@ const ALL_METHODS = [
     'post:deleteSet',
     'post:getSetSettings',
     'post:setSetSimpleMode',
-    'post:startOver'
+    'post:startOver',
+    'post:reset'
 ];
 
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
@@ -37,9 +39,34 @@ export default class ServerController {
         this.db = await connect(mongoDbUrl);
     }
 
-    async deleteCard(req) {
+    async getSetAndSession(req) {
 
-        let cardId = req.body.cardId;
+        let {setId} = req.body;
+
+        if (!setId || !RE_OBJECT_ID.test(setId)) {
+            throw Error('Set is not specified');
+        }
+
+        let session = await this.getSession(req);
+        setId = ObjectId(setId);
+
+        let set = await this.db.collection('sets').findOne({
+            _id: setId
+        });
+
+        if (!set || set.userId !== session.userId) {
+            throw Error('Cannot find set');
+        }
+
+        return {
+            set,
+            session
+        };
+    }
+
+    async getCardAnsSession(req) {
+
+        let {cardId} = req.body;
 
         if (!cardId || !RE_OBJECT_ID.test(cardId)) {
             throw Error('Wrong card id');
@@ -57,12 +84,22 @@ export default class ServerController {
             throw Error('Cannot find card');
         }
 
+        return {
+            card,
+            session
+        };
+    }
+
+    async deleteCard(req) {
+
+        let {card, session} = await this.getCardAnsSession(req);
+
         await this.db.collection('answers').removeMany({
-            cardId
+            cardId: card.cardId
         });
 
         await this.db.collection('cards').removeOne({
-            _id: cardId
+            _id: card.cardId
         });
 
         return {
@@ -72,22 +109,14 @@ export default class ServerController {
 
     async addCard(req) {
 
-        let session = await this.getSession(req);
+        let {source, target, comment} = req.body;
 
-        let {setId, source, target, comment} = req.body;
-
-        let set = await this.db.collection('sets').findOne({
-            _id: ObjectId(setId)
-        });
-
-        if (!set || set.userId !== session.userId) {
-            throw Error('Cannot find set');
-        }
+        let {set, session} = await this.getSetAndSession(req);
 
         let result = await this.db.collection('cards').insertOne({
             userId: session.userId,
             created: new Date(),
-            setId: ObjectId(setId),
+            setId: set._id,
             source,
             target,
             comment,
@@ -101,7 +130,9 @@ export default class ServerController {
 
     async addSet(req) {
 
-        if (!req.body.name) {
+        let {name} = req.body;
+
+        if (!name) {
             throw Error('Set name cannot be empty');
         }
 
@@ -110,7 +141,7 @@ export default class ServerController {
         let result = await this.db.collection('sets').insertOne({
             userId: session.userId,
             created: new Date(),
-            name: req.body.name,
+            name: name,
             simpleMode: true
         });
 
@@ -137,23 +168,10 @@ export default class ServerController {
 
     async getSetStatistics(req) {
 
-        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
-            throw Error('Set is not specified');
-        }
-
-        let session = await this.getSession(req);
-        let setId = ObjectId(req.body.setId);
-
-        let set = await this.db.collection('sets').findOne({
-            _id: setId
-        });
-
-        if (!set || set.userId !== session.userId) {
-            throw Error('Cannot find set');
-        }
+        let {set} = await this.getSetAndSession(req);
 
         let count = await this.db.collection('cards').count({
-            setId
+            setId: set._id
         });
 
         return {
@@ -164,20 +182,7 @@ export default class ServerController {
 
     async getSetSettings(req) {
 
-        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
-            throw Error('Set is not specified');
-        }
-
-        let session = await this.getSession(req);
-        let setId = ObjectId(req.body.setId);
-
-        let set = await this.db.collection('sets').findOne({
-            _id: setId
-        });
-
-        if (!set || set.userId !== session.userId) {
-            throw Error('Cannot find set');
-        }
+        let {set} = await this.getSetAndSession(req);
 
         return {
             name: set.name,
@@ -185,33 +190,75 @@ export default class ServerController {
         };
     }
 
+    async deleteAnswers(setId) {
+        await this.db.collection('cycleAnswers').removeMany({
+            setId
+        });
+        await this.db.collection('answers').removeMany({
+            setId
+        });
+    }
+
     async setSetSimpleMode(req) {
 
+        let {set} = await this.getSetAndSession(req);
+        let {mode} = req.body;
+
+        await this.db.collection('sets').updateOne({
+            _id: set._id
+        }, {
+            $set: {
+                simpleMode: !!mode
+            }
+        });
+
+        await this.deleteAnswers(set._id);
+
+        return {
+            success: true
+        };
+    }
+
+    async reset(req) {
+
+        let {set} = await this.getSetAndSession(req);
+        await this.deleteAnswers(set._id);
+
+        return {
+            success: true
+        };
     }
 
     async startOver(req) {
-        
+
+        let {set} = await this.getSetAndSession(req);
+
+        if (set.simpleMode === undefined || set.simpleMode) {
+            throw Error('Available only in extended mode');
+        }
+
+        if (req.body.onlyAnswered) {
+            await this.db.collection('cycleAnswers').removeMany({
+                setId: set._id,
+                isCorrect: true
+            });
+        } else {
+            await this.db.collection('cycleAnswers').removeMany({
+                setId: set._id
+            });
+        }
+
+        return {
+            success: true
+        };
     }
 
     async deleteSet(req) {
 
-        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
-            throw Error('Set is not specified');
-        }
-
-        let session = await this.getSession(req);
-        let setId = ObjectId(req.body.setId);
-
-        let set = await this.db.collection('sets').findOne({
-            _id: setId
-        });
-
-        if (!set || set.userId !== session.userId) {
-            throw Error('Cannot find set');
-        }
+        let {set} = await this.getSetAndSession(req);
 
         let count = await this.db.collection('cards').count({
-            setId
+            setId: set._id
         });
 
         if (count > 0) {
@@ -219,7 +266,7 @@ export default class ServerController {
         }
 
         await this.db.collection('sets').removeOne({
-            _id: setId
+            _id: set._id
         });
 
         return {
@@ -229,23 +276,10 @@ export default class ServerController {
 
     async getCards(req) {
 
-        if (!req.body.setId || !RE_OBJECT_ID.test(req.body.setId)) {
-            throw Error('Set is not specified');
-        }
-
-        let session = await this.getSession(req);
-        let setId = ObjectId(req.body.setId);
-
-        let set = await this.db.collection('sets').findOne({
-            _id: setId
-        });
-
-        if (!set || set.userId !== session.userId) {
-            throw Error('Cannot find set');
-        }
+        let {set} = await this.getSetAndSession(req);
 
         let cards = await this.db.collection('cards').find({
-            setId
+            setId: set._id
         }).toArray();
 
         return {
@@ -260,7 +294,7 @@ export default class ServerController {
 
     async getSession(req) {
 
-        let sessionId = req.body.sessionId;
+        let {sessionId} = req.body;
 
         if (!sessionId || !RE_OBJECT_ID.test(sessionId)) {
             throw Error('Unknown session');
@@ -279,33 +313,20 @@ export default class ServerController {
 
     async selectCard(req) {
 
-        let session = await this.getSession(req);
+        let {card, session} = await this.getCardAnsSession(req);
+        let {answerId} = req.body;
 
-        let answerId = req.body.answer;
-        let cardId = req.body.cardId;
-
-        if (!RE_OBJECT_ID.test(cardId)) {
-            throw Error('Wrong card id');
-        }
-
-        cardId = ObjectId(cardId);
-
-        let card = await this.db.collection('cards').findOne({_id: cardId});
-
-        if (!card || card.userId !== session.userId) {
-            throw Error('Wrong card id');
-        }
-
-        // noinspection EqualityComparisonWithCoercionJS
-        let correctAnswer = card.answerId == answerId;
-
-        await this.db.collection('answers').insertOne({
+        let answer = {
             userId: session.userId,
-            cardId: cardId,
+            cardId: card._id,
             setId: card.setId,
-            isCorrect: correctAnswer,
+            answerId,
+            isCorrect: answerId === card.answerId,
             created: new Date()
-        });
+        };
+
+        await this.db.collection('answers').insertOne(answer);
+        await this.db.collection('cycleAnswers').insertOne(answer);
 
         return {
             correctAnswer: card.answerId
@@ -314,207 +335,16 @@ export default class ServerController {
 
     async getCard(req) {
 
-        let session = await this.getSession(req);
+        let {set, session} = await this.getSetAndSession(req);
 
-        let setId = req.body.setId;
+        const cardSelector = new CardSelector(this.db, set, session, req);
 
-        if (!setId || !RE_OBJECT_ID.test(setId)) {
-            throw Error('Wrong set id');
-        }
-
-        setId = ObjectId(setId);
-
-        let set = await this.db.collection('sets').findOne({
-            _id: setId
-        });
-
-        if (!set || set.userId !== session.userId) {
-            throw Error('Wrong set id');
-        }
-
-        let cards = await this.db.collection('cards').find({
-            setId
-        }).toArray();
-
-        if (cards.length === 0) {
-            return {
-                items: [],
-                id: -1
-            };
-        }
-
-        // get last 5 answers for each card
-
-        let answers = await this.db.collection('answers').aggregate([
-            {$match: {setId}},
-            {$sort: {'created': 1}},
-            {
-                $group: {
-                    _id: '$cardId',
-                    count: {'$sum': 1},
-                    items: {
-                        $push: '$isCorrect'
-                    }
-                }
-            },
-            {$project: {items: {$slice: ['$items', -5]}}}
-        ]).toArray();
-
-        for (let answer of answers) {
-
-            let card = cards.find(r => r._id.equals(answer._id));
-            if (!card) {
-                //console.log('Cannot find record ' + answer._id);
-                continue;
-            }
-
-            card.answers = answer.count;
-
-            if (answer.items.length) {
-                let items = answer.items.map(i => i ? 1 : 0);
-                card.score = items.reduce((a, b) => a + b, 0) / items.length;
-            }
-        }
-
-        for (let card of cards) {
-            card.score = card.score !== undefined ? card.score : -1;
-        }
-
-        // we place records which will have higher probability at the beginning of the list
-        // records without answers will have highest probability among others
-        // records with lower score will have higher probability than records with higher score
-        // this way we guarantee to take all unanswered records as fast as possible and then concentrate on records
-        // with lower score (i.e. which have less correct answers)
-
-        cards.sort((a, b) => {
-            return a.score - b.score;
-        });
-
-        // console.log(1);
-
-        // console.log(JSON.stringify(cards.map(card => ({
-        //     answers: card.answers,
-        //     score: card.score,
-        //     source: card.source
-        // })), null, ' '));
-
-        //console.log(answers);
-
-        //console.log(records);
-
-        let record;
-
-        if (cards[0].score === -1) { // i.e. it was never chosen
-            record = cards[0];
-        } else {
-
-            for (;;) {
-
-                let index = Math.random();
-
-                // nonlinear probability distribution to take first items more often
-                // note that [0;1) * [0;1) also belongs to [0;1)
-                index = Math.floor(index * index * cards.length);
-
-                // console.log('2 ' + index + ' ' + cards.length);
-
-                // choose a record
-                record = cards[index];
-
-                let start = index, end = index+1;
-
-                while (start > 0 && cards[start-1].score === record.score) {
-                    start--;
-                }
-
-                while (end < cards.length && cards[end].score === record.score) {
-                    end++;
-                }
-
-                if (end-start > 1) {
-                    // if we have more than one record with the same score we choose randomly from the list of items with the same score
-                    index = start + Math.floor(Math.random()*(end-start));
-                    record = cards[index];
-                    //console.log('2.1: ' + (end-start) + ' ' + index);
-                }
-
-                // console.log('3', record);
-
-                // ensure it is not the same answer we got last three times; assume that
-                // lastAnswers is sorted as 'first item is the newest one'
-
-                if (cards.length < 6) { // exception: we don't check for last cards if we have very limited set of existing cards
-                    console.log('too less cards');
-                    record = cards[index];
-                    break;
-                }
-
-                let lastAnswersCount = Math.min(3, req.body.lastAnswers ? req.body.lastAnswers.length : 0);
-                let cardId = record._id.toHexString();
-                let i;
-                console.log('cardId: ' + cardId + ', count: ' + lastAnswersCount + ', lastAnswers: ', req.body.lastAnswers);
-                for (i = 0; i < 3 && i < lastAnswersCount; i++) {
-                    if (req.body.lastAnswers[i] === cardId) {
-                        break;
-                    }
-                }
-                console.log(i);
-                if (i >= lastAnswersCount) {
-                    break;
-                }
-            }
-        }
-
-        let directionSourceToTarget = Math.random() < 0.5;
-
-        let recordTarget = directionSourceToTarget ? record.target : record.source;
-        let recordTargetLength = recordTarget.length;
-
-        // console.log('4 ' + setId + ' ' + typeof setId);
-
-        let allTargets = cards
-            .filter(r => !r._id.equals(record._id))
-            .map(r => ({text: directionSourceToTarget ? r.target : r.source, id: r.answerId }))
-            .sort((a, b) => (Math.abs(a.text.length-recordTargetLength)-Math.abs(b.text.length-recordTargetLength)));
-
-        //console.log(record.target);
-        //console.log(JSON.stringify(allTargets, null, ' '));
-
-        // console.log('5 ' + allTargets.length);
-
-        let targets = [];
-
-        while (allTargets.length > 0 && targets.length < 4) {
-            if (allTargets.length < 4) {
-                targets.push(allTargets.pop());
-                continue;
-            }
-
-            let index = Math.random();
-            index = Math.floor(index * index * allTargets.length/2);
-
-            targets.push(allTargets[index]);
-            allTargets.splice(index, 1);
-        }
-
-        targets.splice(Math.floor(Math.random()*targets.length+1), 0, {
-            text: directionSourceToTarget ? record.target : record.source,
-            id: record.answerId
-        });
-
-        // console.log(6);
-
-        return {
-            items: targets,
-            source: directionSourceToTarget ? record.source : record.target,
-            comment: record.comment,
-            id: record._id
-        };
+        return await cardSelector.selectCard();
     }
 
     async login(req) {
 
-        let sessionId = req.body.sessionId;
+        let {sessionId, accessToken} = req.body;
 
         if (sessionId && RE_OBJECT_ID.test(sessionId)) {
 
@@ -531,8 +361,6 @@ export default class ServerController {
                 };
             }
         }
-
-        let accessToken = req.body.accessToken;
 
         if (!accessToken) {
             return {

@@ -17,10 +17,17 @@ export default class BackendApi {
         return await FetchService.post(name, options);
     }
 
-    static async selectCard(cardId, answer) {
+    static async selectCard(cardId, answerId) {
         return await BackendApi.execute('/select', {
-            answer,
+            answerId,
             cardId
+        });
+    }
+
+    static async startOver(setId, onlyAnswered) {
+        await BackendApi.execute('/startOver', {
+            setId,
+            onlyAnswered
         });
     }
 
@@ -94,12 +101,6 @@ export default class BackendApi {
         await BackendApi.execute('/setSetSimpleMode', {
             setId,
             mode
-        });
-    }
-
-    static async startOver(setId) {
-        await BackendApi.execute('/startOver', {
-            setId
         });
     }
 

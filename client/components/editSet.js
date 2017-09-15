@@ -63,6 +63,8 @@ class EditSet extends React.Component {
         let { setId } = this.props;
 
         await BackendApi.setSetSimpleMode(setId, !this.state.settings.simpleMode);
+
+        await this.getSettings();
     }
 
     async startOver() {
@@ -149,7 +151,7 @@ class EditSet extends React.Component {
             />
 
             {this.state.statistics && !this.state.statistics.count ? <div>
-                <div className="section">Manage</div>
+                <h2>Manage</h2>
                 <Button
                     label="Delete set"
                     raised

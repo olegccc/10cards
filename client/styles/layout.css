@@ -5,7 +5,7 @@ html, body {
 
 body {
   display: flex;
-  min-width: 250px;
+  min-width: 450px;
   flex-direction: column;
 }
 
@@ -16,13 +16,7 @@ body {
 }
 
 body {
-  font-size: 1.5em;
-}
-
-@media screen and (max-width: 600px) {
-  body {
-    font-size: 1.2em;
-  }
+  font-size: 1em;
 }
 
 @media screen and (max-width: 400px) {
