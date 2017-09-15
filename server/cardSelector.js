@@ -95,6 +95,8 @@ export default class CardSelector {
                 }
             }
         }
+
+        this.allCards = this.cards;
     }
 
     chooseRecord() {
@@ -165,7 +167,7 @@ export default class CardSelector {
 
         // choose cards which are different from the selected but have text length similar to selected
         // sort them by text length difference - less different placed on top
-        let allTargets = this.cards
+        let allTargets = this.allCards
             .filter(r => !r._id.equals(record._id))
             .map(r => ({text: this.direction ? r.target : r.source, id: r.answerId }))
             .sort((a, b) => (Math.abs(a.text.length-recordTargetLength)-Math.abs(b.text.length-recordTargetLength)));
