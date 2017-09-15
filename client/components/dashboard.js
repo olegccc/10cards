@@ -22,11 +22,11 @@ class Dashboard extends React.Component {
     }
 
     startOver() {
-
+        this.props.dispatch(CardActions.startOver());
     }
 
     answerIncorrect() {
-
+        this.props.dispatch(CardActions.answerIncorrect());
     }
 
     render() {
@@ -50,18 +50,18 @@ class Dashboard extends React.Component {
                 break;
             case CardState.ALL_ANSWERED:
                 message = <div><p>You gave all answers, but some were incorrect. You can answer again only incorrect ones or start over.</p>
-                    <p><Button
+                    <Button
                     label='Answer incorrect'
                     onTouchTap={() => this.answerIncorrect()}
                     raised
                     primary
                     style={{ fontSize: '1em', width: '100%' }}
-                /> <Button
+                /><Button
                         label='Start over'
                         onTouchTap={() => this.startOver()}
                         raised
-                        style={{ fontSize: '1em', width: '100%' }}
-                    /></p></div>;
+                        style={{ fontSize: '1em', width: '100%', marginTop: '0.5em' }}
+                    /></div>;
                 break;
         }
 

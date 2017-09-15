@@ -240,7 +240,7 @@ export default class ServerController {
         if (req.body.onlyAnswered) {
             await this.db.collection('cycleAnswers').removeMany({
                 setId: set._id,
-                isCorrect: true
+                isCorrect: false
             });
         } else {
             await this.db.collection('cycleAnswers').removeMany({
