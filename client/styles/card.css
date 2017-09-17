@@ -40,6 +40,8 @@
 
 .card {
 
+  position: relative;
+
   .choice {
     .text {
       cursor: pointer;
@@ -54,6 +56,14 @@
     }
   }
 
+  .statistics {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.7em;
+  }
 }
 
 .answer {

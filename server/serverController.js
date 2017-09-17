@@ -3,6 +3,7 @@ import {connect, ObjectId} from 'mongodb'
 import FetchService from '../shared/fetchService'
 import sha256 from 'js-sha256'
 import CardSelector from './cardSelector'
+import _ from 'lodash'
 
 const ALL_METHODS = [
     'post:card:getCard',
@@ -18,7 +19,9 @@ const ALL_METHODS = [
     'post:getSetSettings',
     'post:setSetSimpleMode',
     'post:startOver',
-    'post:reset'
+    'post:reset',
+    'post:setSetBlockMode',
+    'post:setActiveSet'
 ];
 
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
@@ -39,9 +42,26 @@ export default class ServerController {
         this.db = await connect(mongoDbUrl);
     }
 
+    async getSession({sessionId}) {
+
+        if (!sessionId || !RE_OBJECT_ID.test(sessionId)) {
+            throw Error('Unknown session');
+        }
+
+        let session = await this.db.collection('sessions').findOne({
+            _id: ObjectId(sessionId)
+        });
+
+        if (!session) {
+            throw Error('Unknown session');
+        }
+
+        return session;
+    }
+
     async getSetAndSession(req) {
 
-        let {setId} = req.body;
+        let {setId} = req;
 
         if (!setId || !RE_OBJECT_ID.test(setId)) {
             throw Error('Set is not specified');
@@ -66,7 +86,7 @@ export default class ServerController {
 
     async getCardAnsSession(req) {
 
-        let {cardId} = req.body;
+        let {cardId} = req;
 
         if (!cardId || !RE_OBJECT_ID.test(cardId)) {
             throw Error('Wrong card id');
@@ -109,7 +129,7 @@ export default class ServerController {
 
     async addCard(req) {
 
-        let {source, target, comment} = req.body;
+        let {source, target, comment} = req;
 
         let {set, session} = await this.getSetAndSession(req);
 
@@ -130,7 +150,7 @@ export default class ServerController {
 
     async addSet(req) {
 
-        let {name} = req.body;
+        let {name} = req;
 
         if (!name) {
             throw Error('Set name cannot be empty');
@@ -161,8 +181,35 @@ export default class ServerController {
         return {
             sets: sets.map(set => ({
                 id: set._id,
-                name: set.name
+                name: set.name,
+                active: set.active
             }))
+        };
+    }
+
+    async setActiveSet(req) {
+
+        let {set, session} = await this.getSetAndSession(req);
+
+        await this.db.collection('sets').updateMany({
+            userId: session.userId
+        }, {
+            $set: {
+                active: false
+            }
+        });
+
+        await this.db.collection('sets').updateOne({
+            userId: session.userId,
+            _id: set._id
+        }, {
+            $set: {
+                active: true
+            }
+        });
+
+        return {
+            success: true
         };
     }
 
@@ -202,13 +249,42 @@ export default class ServerController {
     async setSetSimpleMode(req) {
 
         let {set} = await this.getSetAndSession(req);
-        let {mode} = req.body;
 
         await this.db.collection('sets').updateOne({
             _id: set._id
         }, {
             $set: {
-                simpleMode: !!mode
+                simpleMode: true,
+                currentBlock: {}
+            }
+        });
+
+        await this.deleteAnswers(set._id);
+
+        return {
+            success: true
+        };
+    }
+
+    async setSetBlockMode(req) {
+
+        let {set} = await this.getSetAndSession(req);
+        let {blockSize} = req;
+        if (!blockSize) {
+            blockSize = 0;
+        } else if (blockSize < 4) {
+            blockSize = 4;
+        } else if (blockSize > 20) {
+            blockSize = 20;
+        }
+
+        await this.db.collection('sets').updateOne({
+            _id: set._id
+        }, {
+            $set: {
+                simpleMode: false,
+                blockSize,
+                currentBlock: {}
             }
         });
 
@@ -231,16 +307,69 @@ export default class ServerController {
 
     async startOver(req) {
 
-        let {set} = await this.getSetAndSession(req);
+        let session = await this.getSession(req);
 
-        if (set.simpleMode === undefined || set.simpleMode) {
-            throw Error('Available only in extended mode');
+        let {setId, onlyHardest, onlyAnswered} = req;
+
+        let set;
+
+        if (setId) {
+
+            if (!RE_OBJECT_ID.test(setId)) {
+                throw Error('Set is not specified');
+            }
+
+            setId = ObjectId(setId);
+
+            set = await this.db.collection('sets').findOne({
+                _id: setId
+            });
+
+            if (!set || set.userId !== session.userId) {
+                throw Error('Cannot find set');
+            }
+
+        } else {
+
+            set = await this.db.collection('sets').findOne({
+                userId: session.userId,
+                active: true
+            });
+
+            if (!set) {
+                set = await this.db.collection('sets').find({
+                    userId: session.userId
+                }).next();
+
+                if (!set) {
+                    return {
+                        noSets: true
+                    };
+                }
+            }
+
         }
 
-        if (req.body.onlyAnswered) {
+        if (set.simpleMode === undefined || set.simpleMode) {
+            throw Error('Available only in blocks mode');
+        }
+
+        if (onlyAnswered) {
             await this.db.collection('cycleAnswers').removeMany({
                 setId: set._id,
                 isCorrect: false
+            });
+        } else if (onlyHardest) {
+            const cardSelector = new CardSelector(this.db, set, session);
+            let cardIds = await cardSelector.getHardestCardIds();
+            // remove records with high quality
+            cardIds.splice(cardIds.length/2, cardIds.length);
+            // remove answers related to records with low quality (i.e. the hardest ones)
+            await this.db.collection('cycleAnswers').removeMany({
+                setId: set._id,
+                _id: {
+                    $in: cardIds
+                }
             });
         } else {
             await this.db.collection('cycleAnswers').removeMany({
@@ -292,41 +421,94 @@ export default class ServerController {
         };
     }
 
-    async getSession(req) {
-
-        let {sessionId} = req.body;
-
-        if (!sessionId || !RE_OBJECT_ID.test(sessionId)) {
-            throw Error('Unknown session');
-        }
-
-        let session = await this.db.collection('sessions').findOne({
-            _id: ObjectId(sessionId)
-        });
-
-        if (!session) {
-            throw Error('Unknown session');
-        }
-
-        return session;
-    }
-
     async selectCard(req) {
 
         let {card, session} = await this.getCardAnsSession(req);
-        let {answerId} = req.body;
+        let {answerId} = req;
+
+        let correct = answerId === card.answerId;
 
         let answer = {
             userId: session.userId,
             cardId: card._id,
             setId: card.setId,
             answerId,
-            isCorrect: answerId === card.answerId,
+            isCorrect: correct,
             created: new Date()
         };
 
+        let set = await this.db.collection('sets').findOne({
+            _id: card.setId
+        });
+
+        let simpleMode = set.simpleMode === undefined || set.simpleMode;
+
+        let insertCycleAnswer = true;
+
+        if (!simpleMode && set.blockSize > 0 && set.currentBlock && set.currentBlock[card._id]) {
+
+            set.currentBlock[card._id] = {
+                answered: true,
+                correct
+            };
+
+            await this.db.collection('sets').updateOne({
+                _id: set._id
+            }, {
+                $set: {
+                    currentBlock: set.currentBlock
+                }
+            });
+
+            let hasUnanswered = false;
+            let hasIncorrect = false;
+
+            _.each(set.currentBlock, (value, key) => {
+                if (!value.answered) {
+                    hasUnanswered = true;
+                }
+                if (!value.correct) {
+                    hasIncorrect = true;
+                }
+            });
+
+            if (!hasUnanswered) {
+                if (!hasIncorrect) {
+                    set.currentBlock = {};
+                } else {
+                    _.each(set.currentBlock, (value, key) => {
+                        if (!value.correct) {
+                            value.answered = false;
+                        }
+                    });
+                }
+
+                await this.db.collection('sets').updateOne({
+                    _id: set._id
+                }, {
+                    $set: {
+                        currentBlock: set.currentBlock
+                    }
+                });
+            }
+
+            let currentCycleAnswer = await this.db.collection('cycleAnswers').findOne({
+                cardId: card._id
+            });
+
+            if (currentCycleAnswer) {
+                // we can repeat already answered question if it was answered incorrectly
+                // but we should always indicate it was answered incorrectly in current cycle even if it was answered
+                // correctly next time
+                insertCycleAnswer = false;
+            }
+        }
+
         await this.db.collection('answers').insertOne(answer);
-        await this.db.collection('cycleAnswers').insertOne(answer);
+
+        if (insertCycleAnswer) {
+            await this.db.collection('cycleAnswers').insertOne(answer);
+        }
 
         return {
             correctAnswer: card.answerId
@@ -335,16 +517,33 @@ export default class ServerController {
 
     async getCard(req) {
 
-        let {set, session} = await this.getSetAndSession(req);
+        let session = await this.getSession(req);
 
-        const cardSelector = new CardSelector(this.db, set, session, req);
+        let set = await this.db.collection('sets').findOne({
+            userId: session.userId,
+            active: true
+        });
+
+        if (!set) {
+            set = await this.db.collection('sets').find({
+                userId: session.userId
+            }).next();
+
+            if (!set) {
+                return {
+                    noSets: true
+                };
+            }
+        }
+
+        const cardSelector = new CardSelector(this.db, set, session);
 
         return await cardSelector.selectCard();
     }
 
     async login(req) {
 
-        let {sessionId, accessToken} = req.body;
+        let {sessionId, accessToken} = req;
 
         if (sessionId && RE_OBJECT_ID.test(sessionId)) {
 
@@ -353,8 +552,6 @@ export default class ServerController {
             });
 
             if (session) {
-
-                //console.log('found session');
 
                 return {
                     success: true

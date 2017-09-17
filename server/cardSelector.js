@@ -1,13 +1,12 @@
 import {ObjectId} from 'mongodb'
-
+import _ from 'lodash';
 
 export default class CardSelector {
 
-    constructor(db, set, session, req) {
+    constructor(db, set, session) {
         this.db = db;
         this.set = set;
         this.session = session;
-        this.req = req;
         this.targets = [];
         this.direction = Math.random() < 0.5;
         this.simpleMode = this.set.simpleMode === undefined || this.set.simpleMode;
@@ -19,6 +18,14 @@ export default class CardSelector {
         }).toArray();
     }
 
+    async getHardestCardIds() {
+        await this.loadCards();
+        await this.getAnswers();
+        this.prepareAnswers();
+
+        return this.cards.map(card => _id);
+    }
+
     async getAnswers() {
 
         let answersQuery = [
@@ -26,7 +33,7 @@ export default class CardSelector {
                 $match: {setId: this.set._id}
             },
             {
-                $sort: {'created': 1}
+                $sort: {'created': -1}
             },
             {
                 $group: {
@@ -51,6 +58,15 @@ export default class CardSelector {
                 setId: this.set._id
             }).toArray();
         }
+    }
+
+    async getLastAnswers() {
+        this.lastAnswers = await this.db.collection('answers').aggregate([
+            { $match: {setId: this.set._id} },
+            { $sort: {'created': -1} },
+            { $limit: 3 },
+            { $project: { _id: 1 } }
+        ]).toArray().map(r => r._id.toHexString());
     }
 
     prepareAnswers() {
@@ -136,17 +152,20 @@ export default class CardSelector {
         // lastAnswers is sorted as 'first item is the newest one'
 
         if (this.cards.length < 6) { // exception: we don't check for last cards if we have very limited set of existing cards
-            console.log('too less cards');
-            record = this.cards[index];
+            //console.log('too less cards');
             return record;
         }
 
-        let lastAnswersCount = Math.min(3, this.req.body.lastAnswers ? this.req.body.lastAnswers.length : 0);
+        if (!this.simpleMode) {
+            return record;
+        }
+
+        let lastAnswersCount = Math.min(3, this.lastAnswers.length);
         let cardId = record._id.toHexString();
         let i;
-        console.log('cardId: ' + cardId + ', count: ' + lastAnswersCount + ', lastAnswers: ', this.req.body.lastAnswers);
+        console.log('cardId: ' + cardId + ', count: ' + lastAnswersCount + ', lastAnswers: ', this.lastAnswers);
         for (i = 0; i < 3 && i < lastAnswersCount; i++) {
-            if (this.req.body.lastAnswers[i] === cardId) {
+            if (this.lastAnswers[i] === cardId) {
                 break;
             }
         }
@@ -210,21 +229,106 @@ export default class CardSelector {
 
         await this.getAnswers();
 
+        if (this.simpleMode) {
+            await this.getLastAnswers();
+        }
+
         this.prepareAnswers();
 
         if (!this.simpleMode) {
 
-            // filter out already answered cards
-            let unansweredCards = this.cards.filter(card => !card.answered);
+            if (!this.set.blockSize) {
+                // filter out already answered cards
+                let unansweredCards = this.cards.filter(card => !card.answered);
 
-            if (!unansweredCards.length) {
-                return {
-                    allAnswered: true,
-                    allCorrect: this.cards.filter(card => !card.correctAnswer).length === 0
+                if (!unansweredCards.length) {
+                    return {
+                        allAnswered: true,
+                        allCorrect: this.cards.filter(card => !card.correctAnswer).length === 0
+                    };
+                }
+
+                this.cards = unansweredCards;
+
+            } else {
+
+                let hasIncorrect = false;
+
+                let currentBlock = this.set.currentBlock || {};
+
+                let hasChanges = false;
+
+                let filter = card => {
+                    let ref = currentBlock[card._id.toHexString()];
+                    if (ref && !ref.correct) {
+                        hasIncorrect = true;
+                    }
+                    return ref && !ref.answered;
                 };
-            }
 
-            this.cards = unansweredCards;
+                let unansweredCards = this.cards.filter(filter);
+
+                if (!unansweredCards.length && hasIncorrect) {
+                    _.each(currentBlock, (value, key) => {
+                        if (!value.correct) {
+                            value.answered = false;
+                            hasChanges = true;
+                        }
+                    });
+                    unansweredCards = this.cards.filter(filter);
+                }
+
+                if (unansweredCards.length) {
+                    this.cards = unansweredCards;
+                } else {
+                    unansweredCards = this.cards.filter(card => !card.answered);
+
+                    if (!unansweredCards.length) {
+                        return {
+                            allAnswered: true,
+                            allCorrect: this.cards.filter(card => !card.correctAnswer).length === 0
+                        };
+                    }
+
+                    let selectedCards = [];
+
+                    this.cards = unansweredCards;
+
+                    while (this.cards.length > 0 && selectedCards.length < this.set.blockSize) {
+                        let record = this.chooseRecord();
+                        if (!record) {
+                            continue;
+                        }
+                        selectedCards.push(record);
+                        this.cards = unansweredCards.filter(r => r !== record);
+                    }
+
+                    this.cards = selectedCards;
+
+                    currentBlock = {};
+                    for (let card of this.cards) {
+                        currentBlock[card._id.toHexString()] = {
+                            answered: false,
+                            correct: false
+                        };
+                    }
+
+                    hasChanges = true;
+                }
+
+                if (hasChanges) {
+
+                    this.set.currentBlock = currentBlock;
+
+                    await this.db.collection('sets').updateOne({
+                        _id: this.set._id
+                    }, {
+                        $set: {
+                            currentBlock: currentBlock
+                        }
+                    });
+                }
+            }
         }
 
         // console.log(1);
@@ -255,11 +359,26 @@ export default class CardSelector {
 
         this.prepareTargets(record);
 
-        return {
+        let ret = {
             items: this.targets,
             source: this.direction ? record.source : record.target,
             comment: record.comment,
             id: record._id
         };
+
+        if (!this.simpleMode) {
+            ret.remainingTotal = this.allCards.length - await this.db.collection('cycleAnswers').count();
+        }
+
+        if (this.set.blockSize > 0) {
+            ret.remainingBlock = 0;
+            _.each(this.set.currentBlock, (value) => {
+                if (!value.answered) {
+                    ret.remainingBlock++;
+                }
+            });
+        }
+
+        return ret;
     }
 }

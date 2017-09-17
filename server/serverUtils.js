@@ -36,7 +36,7 @@ export default class ServerUtils {
             let methodName = methodDef.length > 2 ? methodDef[2] : methodDef[1];
             app[httpMethod]('/' + url, async (req, res) => {
                 try {
-                    let response = await instance[methodName](req, res);
+                    let response = await instance[methodName](req.body, req, res);
                     res.set('Content-Type', 'application/json');
                     res.end(response && JSON.stringify(response));
                 } catch (error) {

@@ -9,7 +9,7 @@ export default class Card {
     static SET_ANSWER = 'set_answer';
     static RESET_CARD = 'reset_card';
 
-    static startOver() {
+    static startOver(onlyHardest) {
 
         return async (dispatch, getState) => {
 
@@ -19,7 +19,7 @@ export default class Card {
             let setId = set.get('setId');
             let lastAnswers = card.get('lastAnswers').toArray();
 
-            await BackendApi.startOver(setId, false);
+            await BackendApi.startOver(setId, false, onlyHardest);
 
             dispatch({
                 type: Card.SET_CARD,
@@ -81,29 +81,9 @@ export default class Card {
 
             dispatch(StateActions.onStartLoading());
 
-            let { card, set } = getState();
-
-            let lastAnswers = card.get('lastAnswers').toArray();
-
-            let setId = set.get('setId');
-
-            if (!setId) {
-                let sets = await BackendApi.getSets();
-
-                if (sets.length === 0) {
-                    // we don't have any set yet
-                    dispatch(StateActions.onFinishLoading());
-                    dispatch(StateActions.onError('No card set is defined, nothing to load'));
-                    return;
-                }
-
-                setId = sets[0].id;
-                dispatch(SetActions.setCurrentSet(setId));
-            }
-
             dispatch({
                 type: Card.SET_CARD,
-                ...await BackendApi.getCard(lastAnswers, setId)
+                ...await BackendApi.getCard()
             });
 
             dispatch(StateActions.onFinishLoading());

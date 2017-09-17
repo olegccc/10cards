@@ -9,7 +9,6 @@ const defaultState = Map({
     selectedAnswer: null,
     correctAnswer: null,
     cardId: null,
-    lastAnswers: List(),
     state: CardState.DEFAULT
 });
 
@@ -30,7 +29,9 @@ function reducer(state = defaultState, action) {
         case CardActions.SET_CARD:
 
             let cardState = CardState.DEFAULT;
-            if (action.noCards) {
+            if (action.noSets) {
+                cardState = CardState.NO_SETS;
+            } else if (action.noCards) {
                 cardState = CardState.NO_CARDS;
             } else if (action.allCorrect) {
                 cardState = CardState.ALL_CORRECT;
@@ -45,7 +46,11 @@ function reducer(state = defaultState, action) {
                 comment: action.comment,
                 correctAnswer: null,
                 selectedAnswer: null,
-                state: cardState
+                state: cardState,
+                cardTotal: action.cardTotal,
+                remainingTotal: action.remainingTotal,
+                cardBlock: action.cardBlock,
+                remainingBlock: action.remainingBlock
             });
 
         case CardActions.SET_CHOICE:
@@ -55,15 +60,8 @@ function reducer(state = defaultState, action) {
 
         case CardActions.SET_ANSWER:
 
-            let lastAnswers = state.get('lastAnswers');
-
-            if (lastAnswers.size >= 3) {
-                lastAnswers = lastAnswers.shift();
-            }
-
             return state.merge({
-                correctAnswer: action.answerId,
-                lastAnswers: lastAnswers.push(state.get('cardId'))
+                correctAnswer: action.answerId
             });
     }
 

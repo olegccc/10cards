@@ -24,10 +24,23 @@ export default class BackendApi {
         });
     }
 
-    static async startOver(setId, onlyAnswered) {
+    static async startOver(setId, onlyAnswered, onlyHardest) {
         await BackendApi.execute('/startOver', {
             setId,
-            onlyAnswered
+            onlyAnswered,
+            onlyHardest
+        });
+    }
+
+    static async reset(setId) {
+        await BackendApi.execute('/reset', {
+            setId
+        });
+    }
+
+    static async setActiveSet(setId) {
+        await BackendApi.execute('/setActiveSet', {
+            setId
         });
     }
 
@@ -36,11 +49,8 @@ export default class BackendApi {
         return response.sets;
     }
 
-    static async getCard(lastAnswers, setId) {
-        return await BackendApi.execute('/card', {
-            lastAnswers,
-            setId
-        });
+    static async getCard() {
+        return await BackendApi.execute('/card', {});
     }
 
     static async addSet(name) {
@@ -97,10 +107,16 @@ export default class BackendApi {
         });
     }
 
-    static async setSetSimpleMode(setId, mode) {
+    static async setSetSimpleMode(setId) {
         await BackendApi.execute('/setSetSimpleMode', {
-            setId,
-            mode
+            setId
+        });
+    }
+
+    static async setSetBlockMode(setId) {
+        await BackendApi.execute('/setSetBlockMode', {
+            blockSize: 10,
+            setId
         });
     }
 

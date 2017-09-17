@@ -4,7 +4,6 @@ import CardActions from './card'
 export default class Set {
 
     static SET_SETS_LIST = 'set_sets_list';
-    static SET_CURRENT_SET = 'set_current_set';
 
     static addNewSet(name) {
 
@@ -35,10 +34,7 @@ export default class Set {
 
             dispatch(CardActions.reset());
 
-            dispatch({
-                type: Set.SET_CURRENT_SET,
-                setId
-            });
+            await BackendApi.setActiveSet(setId);
         }
     }
 }

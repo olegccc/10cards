@@ -22,7 +22,7 @@ class Dashboard extends React.Component {
     }
 
     startOver() {
-        this.props.dispatch(CardActions.startOver());
+        this.props.dispatch(CardActions.startOver(true));
     }
 
     answerIncorrect() {
@@ -36,6 +36,9 @@ class Dashboard extends React.Component {
         let message;
 
         switch (state) {
+            case CardState.NO_SETS:
+                message = <p>There are no card sets defined. Please add card set in <a href="/#/settings">settings</a>.</p>;
+                break;
             case CardState.NO_CARDS:
                 message = <p>There are no cards defined. Please add cards in <a href="/#/settings">settings</a>.</p>;
                 break;

@@ -26,26 +26,21 @@ class EditSet extends React.Component {
 
     async getStatistics() {
         let statistics = await BackendApi.getSetStatistics(this.props.setId);
-        this.setState({
-            statistics
-        });
+        this.setState({ statistics });
     }
 
     async getSettings() {
         let settings = await BackendApi.getSetSettings(this.props.setId);
-        this.setState({
-            settings
-        });
+        this.setState({ settings });
     }
 
     async deleteSet() {
-
         await BackendApi.deleteSet(this.props.setId);
-
         this.props.router.push('/settings');
     }
 
     async addCard() {
+
         let { source, target, comment } = this.state;
         let { setId } = this.props;
 
@@ -59,19 +54,22 @@ class EditSet extends React.Component {
     }
 
     async changeMode() {
-
-        let { setId } = this.props;
-
-        await BackendApi.setSetSimpleMode(setId, !this.state.settings.simpleMode);
-
+        if (this.state.settings.simpleMode) {
+            await BackendApi.setSetBlockMode(this.props.setId);
+        } else {
+            await BackendApi.setSetSimpleMode(this.props.setId);
+        }
         await this.getSettings();
     }
 
     async startOver() {
+        await BackendApi.startOver(this.props.setId);
+        await this.getSettings();
+    }
 
-        let { setId } = this.props;
-
-        await BackendApi.startOver(setId);
+    async reset() {
+        await BackendApi.reset(this.props.setId);
+        await this.getSettings();
     }
 
     renderBody() {
@@ -83,29 +81,6 @@ class EditSet extends React.Component {
             </div>
 
             <h1>Edit set '{this.props.selectedSet.name}'</h1>
-
-            <h2>Mode</h2>
-
-            <div>
-                <p>The system can work in two modes: simple and sessions. In simple mode you just take next card,
-                    the process is the same each time. In sessions mode, you go round by round, each round includes only
-                    unanswered cards (first round) or cards which were incorrectly answered in previous round.</p>
-                { this.state.settings ? <p>Current mode: {this.state.settings.simpleMode ? 'simple' : 'sessions'}.</p> : null }
-
-                { this.state.settings ? <Button
-                    label={ this.state.settings.simpleMode ? 'Switch to sessions mode' : 'Switch to simple mode'}
-                    onTouchTap={() => this.changeMode()}
-                    raised
-                    style={{ fontSize: '1em', width: '100%', marginBottom: '1em' }}
-                    /> : null }
-
-                <Button
-                    label="Start over"
-                    onTouchTap={() => this.startOver()}
-                    raised
-                    style={{ fontSize: '1em', width: '100%' }}
-                />
-            </div>
 
             <h2>Add Card</h2>
 
@@ -160,6 +135,38 @@ class EditSet extends React.Component {
                     />
 
             </div> : null}
+
+            <h2>Mode</h2>
+
+            <div>
+                <p style={{ fontSize: '0.5em'}}>The system can work in two modes: simple and regular mode. In simple mode you just take next card,
+                    the process is the same each time. In blocks mode, you go round by round, each round includes only
+                    unanswered cards (first round) or cards which were incorrectly answered in previous round.</p>
+                <p style={{ fontSize: '0.5em'}}>Blocks mode can be also split in sub-blocks each of N cards. In this case you move to next sub-block
+                    only after you answered correctly to each card in the sub-block.</p>
+                { this.state.settings ? <p style={{ fontSize: '0.5em'}}>Current mode: {this.state.settings.simpleMode ? 'simple' : 'blocks'}.</p> : null }
+
+                { this.state.settings ? <Button
+                    label={ this.state.settings.simpleMode ? 'Switch to blocks mode' : 'Switch to simple mode'}
+                    onTouchTap={() => this.changeMode()}
+                    raised
+                    style={{ fontSize: '1em', width: '100%', marginBottom: '1em' }}
+                /> : null }
+
+                { this.state.settings && !this.state.settings.simpleMode ? <Button
+                    label='Start over'
+                    onTouchTap={() => this.startOver()}
+                    raised
+                    style={{ fontSize: '1em', width: '100%', marginBottom: '1em' }}
+                /> : null}
+
+                <Button
+                    label="Reset"
+                    onTouchTap={() => this.reset()}
+                    raised
+                    style={{ fontSize: '1em', width: '100%' }}
+                />
+            </div>
 
         </div>;
     }

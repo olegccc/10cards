@@ -7,12 +7,4 @@ export default class Configuration {
     static setSessionId(sessionId) {
         sessionStorage.setItem('sessionId', sessionId);
     }
-
-    static getSetId() {
-        return sessionStorage.getItem('setId');
-    }
-
-    static setSetId(setId) {
-        sessionStorage.setItem('setId', setId);
-    }
 }

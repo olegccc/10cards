@@ -3,4 +3,5 @@ export default class CardState {
     static NO_CARDS = 'no_cards';
     static ALL_ANSWERED = 'all_answered';
     static ALL_CORRECT = 'all_correct';
+    static NO_SETS = 'no_sets';
 };
