@@ -23,7 +23,7 @@ export default class CardSelector {
         await this.getAnswers();
         this.prepareAnswers();
 
-        return this.cards.map(card => _id);
+        return this.cards.map(card => card._id);
     }
 
     async getAnswers() {

@@ -365,9 +365,10 @@ export default class ServerController {
             // remove records with high quality
             cardIds.splice(cardIds.length/2, cardIds.length);
             // remove answers related to records with low quality (i.e. the hardest ones)
+
             await this.db.collection('cycleAnswers').removeMany({
                 setId: set._id,
-                _id: {
+                cardId: {
                     $in: cardIds
                 }
             });

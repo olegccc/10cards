@@ -15,15 +15,11 @@ export default class Card {
 
             dispatch(StateActions.onStartLoading());
 
-            let { card, set } = getState();
-            let setId = set.get('setId');
-            let lastAnswers = card.get('lastAnswers').toArray();
-
-            await BackendApi.startOver(setId, false, onlyHardest);
+            await BackendApi.startOver(undefined, false, onlyHardest);
 
             dispatch({
                 type: Card.SET_CARD,
-                ...await BackendApi.getCard(lastAnswers, setId)
+                ...await BackendApi.getCard()
             });
 
             dispatch(StateActions.onFinishLoading());
@@ -36,15 +32,11 @@ export default class Card {
 
             dispatch(StateActions.onStartLoading());
 
-            let { card, set } = getState();
-            let setId = set.get('setId');
-            let lastAnswers = card.get('lastAnswers').toArray();
-
-            await BackendApi.startOver(setId, true);
+            await BackendApi.startOver(undefined, true);
 
             dispatch({
                 type: Card.SET_CARD,
-                ...await BackendApi.getCard(lastAnswers, setId)
+                ...await BackendApi.getCard()
             });
 
             dispatch(StateActions.onFinishLoading());
