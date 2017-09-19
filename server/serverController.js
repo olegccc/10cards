@@ -362,8 +362,18 @@ export default class ServerController {
         } else if (onlyHardest) {
             const cardSelector = new CardSelector(this.db, set, session);
             let cardIds = await cardSelector.getHardestCardIds();
-            // remove records with high quality
-            cardIds.splice(cardIds.length/2, cardIds.length);
+            // prepare to remove records with high quality
+            // use 40% of hardest questions
+            let hardestCount = Math.floor(cardIds.length*0.4);
+            // use 10% of random questions
+            let randomCount = Math.floor(cardIds.length*0.1);
+            let cardsToRemove = cardIds.slice(0, hardestCount);
+            cardIds.splice(0, hardestCount);
+            for (let i = 0; i < randomCount; i++) {
+                let pos = Math.floor(Math.random()*cardIds.length);
+                cardsToRemove.push(cardIds[pos]);
+                cardIds.splice(pos, 1);
+            }
             // remove answers related to records with low quality (i.e. the hardest ones)
 
             await this.db.collection('cycleAnswers').removeMany({

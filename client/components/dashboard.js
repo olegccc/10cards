@@ -43,18 +43,18 @@ class Dashboard extends React.Component {
                 message = <p>There are no cards defined. Please add cards in <a href="/#/settings">settings</a>.</p>;
                 break;
             case CardState.ALL_CORRECT:
-                message = <p>You gave all correct answers. <Button
+                message = <div><p>You gave all correct answers.</p><Button
                     label='Start over'
                     onTouchTap={() => this.startOver()}
                     raised
                     primary
                     style={{ fontSize: '1em', width: '100%' }}
-                /></p>;
+                /></div>;
                 break;
             case CardState.ALL_ANSWERED:
                 message = <div><p>You gave all answers, but some were incorrect. You can answer again only incorrect ones or start over.</p>
                     <Button
-                    label='Answer incorrect'
+                    label='Answer again'
                     onTouchTap={() => this.answerIncorrect()}
                     raised
                     primary

@@ -19,10 +19,10 @@ export default class CardSelector {
     }
 
     async getHardestCardIds() {
+        this.simpleMode = true;
         await this.loadCards();
         await this.getAnswers();
         this.prepareAnswers();
-
         return this.cards.map(card => card._id);
     }
 
@@ -43,13 +43,12 @@ export default class CardSelector {
                         $push: '$isCorrect'
                     }
                 }
+            },
+            {
+                // get last 5 answers for each card
+                $project: {items: {$slice: ['$items', -5]}}
             }
         ];
-
-        if (this.simpleMode) {
-            // get last 5 answers for each card
-            answersQuery.push({$project: {items: {$slice: ['$items', -5]}}});
-        }
 
         this.answers = await this.db.collection('answers').aggregate(answersQuery).toArray();
 
