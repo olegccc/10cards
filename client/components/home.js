@@ -14,11 +14,13 @@ class Home extends React.Component {
 
     renderBody() {
 
-        if (this.props.loginLoading) {
+        let {loginLoading, loggedIn} = this.props;
+
+        if (loginLoading) {
             return null;
         }
 
-        if (!this.props.loggedIn) {
+        if (!loggedIn) {
             return (<div style={{ marginTop: '6em'}}>
                 <p>You are not logged in. Please click Login button to start.</p>
                 <div>

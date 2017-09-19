@@ -21,7 +21,9 @@ const ALL_METHODS = [
     'post:startOver',
     'post:reset',
     'post:setSetBlockMode',
-    'post:setActiveSet'
+    'post:setActiveSet',
+    'post:readCard',
+    'post:editCard'
 ];
 
 const RE_OBJECT_ID = /^[0-9a-fA-F]{24}$/;
@@ -59,20 +61,43 @@ export default class ServerController {
         return session;
     }
 
-    async getSetAndSession(req) {
+    async getSetAndSession(req, useDefault) {
 
         let {setId} = req;
 
-        if (!setId || !RE_OBJECT_ID.test(setId)) {
-            throw Error('Set is not specified');
-        }
-
         let session = await this.getSession(req);
-        setId = ObjectId(setId);
 
-        let set = await this.db.collection('sets').findOne({
-            _id: setId
-        });
+        let set;
+
+        if (!setId && useDefault) {
+            set = await this.db.collection('sets').findOne({
+                userId: session.userId,
+                active: true
+            });
+
+            if (!set) {
+                set = await this.db.collection('sets').find({
+                    userId: session.userId
+                }).next();
+
+                if (!set) {
+                    return {
+                        noSets: true
+                    };
+                }
+            }
+
+        } else {
+            if (!setId || !RE_OBJECT_ID.test(setId)) {
+                throw Error('Set is not specified');
+            }
+
+            setId = ObjectId(setId);
+
+            set = await this.db.collection('sets').findOne({
+                _id: setId
+            });
+        }
 
         if (!set || set.userId !== session.userId) {
             throw Error('Cannot find set');
@@ -84,7 +109,7 @@ export default class ServerController {
         };
     }
 
-    async getCardAnsSession(req) {
+    async getCardAndSession(req) {
 
         let {cardId} = req;
 
@@ -110,16 +135,28 @@ export default class ServerController {
         };
     }
 
+    async readCard(req) {
+        let {card} = await this.getCardAndSession(req);
+
+        return {
+            source: card.source,
+            target: card.target,
+            sourceComment: card.sourceComment,
+            targetComment: card.targetComment,
+            answers: card.answers
+        };
+    }
+
     async deleteCard(req) {
 
-        let {card, session} = await this.getCardAnsSession(req);
+        let {card, session} = await this.getCardAndSession(req);
 
         await this.db.collection('answers').removeMany({
-            cardId: card.cardId
+            cardId: card._id
         });
 
         await this.db.collection('cards').removeOne({
-            _id: card.cardId
+            _id: card._id
         });
 
         return {
@@ -127,24 +164,98 @@ export default class ServerController {
         };
     }
 
-    async addCard(req) {
+    async addOrEditCard(req, edit) {
 
-        let {source, target, comment} = req;
+        let {source, target, sourceComment, targetComment, answers} = req;
+        let card;
 
-        let {set, session} = await this.getSetAndSession(req);
+        if (edit) {
+            let response = await this.getCardAndSession(req);
+            card = response.card;
+        }
 
-        let result = await this.db.collection('cards').insertOne({
-            userId: session.userId,
-            created: new Date(),
-            setId: set._id,
+        let {set, session} = await this.getSetAndSession(req, true);
+
+        source = source.trim();
+        target = target.trim();
+
+        if (!edit) {
+            card = await this.db.collection('cards').findOne({
+                source
+            });
+
+            if (card) {
+                throw Error('Card with the same source text already exists');
+            }
+
+            card = await this.db.collection('cards').findOne({
+                target
+            });
+
+            if (card) {
+                throw Error('Card with the same target text already exists');
+            }
+        }
+
+        let collection = this.db.collection('cards');
+
+        let props = {
             source,
             target,
-            comment,
-            answerId: sha256(ObjectId().toHexString()).substring(0, 20)
+            sourceComment,
+            targetComment,
+            answers
+        };
+
+        if (edit) {
+            props.updated = new Date();
+            return await collection.updateOne({
+                _id: card._id
+            }, {
+                $set: props
+            });
+        } else {
+
+            props.userId = session.userId;
+            props.created = new Date();
+            props.setId = set._id;
+            props.answerId = sha256(ObjectId().toHexString()).substring(0, 20);
+
+            return await collection.insertOne(props);
+        }
+    }
+
+    async editCard(req) {
+        await this.addOrEditCard(req, true);
+        return {
+            success: true
+        };
+    }
+
+    async addCard(req) {
+
+        let result = await this.addOrEditCard(req, false);
+
+        return {
+            id: result.insertedId,
+            name: set.name,
+            count: await this.db.collection('cards').count({
+                setId: set._id
+            })
+        };
+    }
+
+    async getSetStatistics(req) {
+
+        let {set} = await this.getSetAndSession(req, true);
+
+        let count = await this.db.collection('cards').count({
+            setId: set._id
         });
 
         return {
-            id: result.insertedId
+            name: set.name,
+            count
         };
     }
 
@@ -213,23 +324,9 @@ export default class ServerController {
         };
     }
 
-    async getSetStatistics(req) {
-
-        let {set} = await this.getSetAndSession(req);
-
-        let count = await this.db.collection('cards').count({
-            setId: set._id
-        });
-
-        return {
-            name: set.name,
-            count
-        };
-    }
-
     async getSetSettings(req) {
 
-        let {set} = await this.getSetAndSession(req);
+        let {set} = await this.getSetAndSession(req, true);
 
         return {
             name: set.name,
@@ -427,14 +524,16 @@ export default class ServerController {
                 id: card._id,
                 source: card.source,
                 target: card.target,
-                comment: card.comment
+                sourceComment: card.sourceComment,
+                targetComment: card.targetComment,
+                answers: card.answers
             }))
         };
     }
 
     async selectCard(req) {
 
-        let {card, session} = await this.getCardAnsSession(req);
+        let {card, session} = await this.getCardAndSession(req);
         let {answerId} = req;
 
         let correct = answerId === card.answerId;
@@ -528,24 +627,7 @@ export default class ServerController {
 
     async getCard(req) {
 
-        let session = await this.getSession(req);
-
-        let set = await this.db.collection('sets').findOne({
-            userId: session.userId,
-            active: true
-        });
-
-        if (!set) {
-            set = await this.db.collection('sets').find({
-                userId: session.userId
-            }).next();
-
-            if (!set) {
-                return {
-                    noSets: true
-                };
-            }
-        }
+        let {set, session} = await this.getSetAndSession(req, true);
 
         const cardSelector = new CardSelector(this.db, set, session);
 

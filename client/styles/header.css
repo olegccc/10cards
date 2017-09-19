@@ -14,7 +14,7 @@
     padding-right: 0.5em;
   }
 
-  .buttons button {
+  .buttons button, .logo button {
     width: 2em;
     min-width: inherit !important;
     border-radius: 2em;
@@ -26,6 +26,10 @@
       margin: 0;
       line-height: 1em;
     }
+  }
+
+  .buttons button {
+    color: #ddd !important;
   }
 
   .error {

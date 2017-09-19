@@ -35,6 +35,12 @@
     border: solid 1px #eee;
     padding: 0 1em;
     text-align: center;
+    line-height: 0.9em;
+  }
+
+  .choice .comment {
+    font-size: 0.4em;
+    margin-top: -0.4em;
   }
 }
 

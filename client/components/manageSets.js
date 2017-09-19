@@ -31,14 +31,13 @@ class Settings extends React.Component {
             addNewSet: false
         });
         let insertedId = await this.props.dispatch(SetActions.addNewSet(setName));
-        this.props.router.push('/settings/set/' + insertedId);
+        this.props.router.push('/editSet/' + insertedId);
     }
 
     render() {
 
         return <div className="settings">
-            <h1>Settings</h1>
-            <h2>Sets</h2>
+            <h1>Sets</h1>
             <div className="list">
                 <List selectable ripple>
                     {this.props.sets.map(set => (
@@ -46,7 +45,7 @@ class Settings extends React.Component {
                             caption={set.name}
                             key={set.id}
                             rightIcon={ set.id === this.props.setId ? <IconButton onTouchTap={() => this.props.dispatch(SetActions.setCurrentSet(set.id))} icon='star'/> : null}
-                            onClick={() => this.props.router.push('/settings/set/' + set.id)}>
+                            onClick={() => this.props.router.push('/editSet/' + set.id)}>
                         </ListItem>
                     ))}
                     <ListItem onClick={() => this.toggleCreateSet()} caption="Add new set"/>

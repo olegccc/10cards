@@ -37,10 +37,10 @@ class Dashboard extends React.Component {
 
         switch (state) {
             case CardState.NO_SETS:
-                message = <p>There are no card sets defined. Please add card set in <a href="/#/settings">settings</a>.</p>;
+                message = <p>There are no card sets defined. Please create set <a href="/#/manageSets">here</a>.</p>;
                 break;
             case CardState.NO_CARDS:
-                message = <p>There are no cards defined. Please add cards in <a href="/#/settings">settings</a>.</p>;
+                message = <p>There are no cards defined. Please add cards <a href="/#/addCard">here</a>.</p>;
                 break;
             case CardState.ALL_CORRECT:
                 message = <div><p>You gave all correct answers.</p><Button

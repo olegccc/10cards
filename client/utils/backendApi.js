@@ -62,19 +62,18 @@ export default class BackendApi {
         return response.id;
     }
 
-    static async addCard(setId,
-                         source,
-                         target,
-                         comment) {
+    static async addCard(setId, options) {
+        options.setId = setId;
+        return await BackendApi.execute('/addCard', options);
+    }
 
-        let response = await BackendApi.execute('/addCard', {
-            setId,
-            source,
-            target,
-            comment
-        });
+    static async readCard(cardId) {
+        return await BackendApi.execute('/readCard', {cardId});
+    }
 
-        return response.id;
+    static async editCard(cardId, options) {
+        options.cardId = cardId;
+        return await BackendApi.execute('/editCard', options);
     }
 
     static async getCards(setId) {

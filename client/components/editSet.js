@@ -3,9 +3,6 @@ import {connect} from 'react-redux'
 import { withRouter } from 'react-router'
 import BackendApi from '../utils/backendApi'
 import { Button } from 'react-toolbox/lib/button'
-import Input from 'react-toolbox/lib/input';
-
-const isBlank = str => !str || /^\s*$/.test(str);
 
 class EditSet extends React.Component {
 
@@ -13,9 +10,6 @@ class EditSet extends React.Component {
         super(props);
 
         this.state = {
-            source: '',
-            target: '',
-            comment: '',
             statistics: null,
             settings: null
         };
@@ -36,21 +30,7 @@ class EditSet extends React.Component {
 
     async deleteSet() {
         await BackendApi.deleteSet(this.props.setId);
-        this.props.router.push('/settings');
-    }
-
-    async addCard() {
-
-        let { source, target, comment } = this.state;
-        let { setId } = this.props;
-
-        this.setState({
-            source: '',
-            target: '',
-            comment: ''
-        });
-
-        await BackendApi.addCard(setId, source, target, comment);
+        this.props.router.push('/manageSets');
     }
 
     async changeMode() {
@@ -76,53 +56,26 @@ class EditSet extends React.Component {
         return <div className="settings">
 
             <div className="breadcrumbs">
-                <div className="item"><a href="#/settings">Settings</a></div>
+                <div className="item"><a href="#/manageSets">Sets</a></div>
                 <div className="item">Edit set '{this.props.selectedSet.name}'</div>
             </div>
 
             <h1>Edit set '{this.props.selectedSet.name}'</h1>
 
-            <h2>Add Card</h2>
-
-            <div>
-                <Input
-                    type="text"
-                    label={<span style={{ fontSize: '0.8em' }}>Source</span>}
-                    style={{ fontSize: '1em', width: '100%' }}
-                    value={this.state.source}
-                    onChange={value => this.setState({ source: value })}
-                />
-                <Input
-                    type="text"
-                    label={<span style={{ fontSize: '0.8em' }}>Target</span>}
-                    style={{ fontSize: '1em', width: '100%' }}
-                    value={this.state.target}
-                    onChange={value => this.setState({ target: value })}
-                />
-                <Input
-                    type="text"
-                    label={<span style={{ fontSize: '0.8em' }}>Comment</span>}
-                    style={{ fontSize: '1em', width: '100%' }}
-                    value={this.state.comment}
-                    onChange={value => this.setState({ comment: value })}
-                />
-                <Button
-                    label="Add card"
-                    primary
-                    raised
-                    disabled={isBlank(this.state.source) || isBlank(this.state.target)}
-                    onTouchTap={() => this.addCard()}
-                    style={{ fontSize: '1em', width: '100%' }}
-                    />
-            </div>
-
             <h2>Cards</h2>
+
+            <Button
+                label='Add card'
+                raised
+                onTouchTap={() => this.props.router.push('/editSet/' + this.props.setId + '/addCard')}
+                style={{ fontSize: '1em', width: '100%' }}
+            />
 
             <Button
                 label={'Edit Cards ' + (this.state.statistics ? (' (' + this.state.statistics.count + ')') : '')}
                 raised
-                onTouchTap={() => this.props.router.push('/settings/set/' + this.props.setId + '/cards')}
-                style={{ fontSize: '1em', width: '100%' }}
+                onTouchTap={() => this.props.router.push('/editCards/' + this.props.setId)}
+                style={{ fontSize: '1em', width: '100%', marginTop: '0.5em' }}
             />
 
             {this.state.statistics && !this.state.statistics.count ? <div>

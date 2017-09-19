@@ -24,10 +24,13 @@ const Answer = ({items, source, comment, selectedAnswer, correctAnswer, dispatch
                 type = 'regular';
             }
 
+            let comment = item.get('comment');
+
             return <div key={id} className={ 'choice ' + type }>
                 <div className="text">
                     <div className="space"></div>
                     <div>{item.get('text')}</div>
+                    {comment ? <div className='comment'>{comment}</div> : null}
                     <div className="space"></div>
                 </div>
             </div>;

@@ -187,7 +187,10 @@ export default class CardSelector {
         // sort them by text length difference - less different placed on top
         let allTargets = this.allCards
             .filter(r => !r._id.equals(record._id))
-            .map(r => ({text: this.direction ? r.target : r.source, id: r.answerId }))
+            .map(r => ({
+                text: this.direction ? r.target : r.source,
+                comment: this.direction ? r.targetComment : r.sourceComment,
+                id: r.answerId }))
             .sort((a, b) => (Math.abs(a.text.length-recordTargetLength)-Math.abs(b.text.length-recordTargetLength)));
 
         //console.log(record.target);
@@ -212,6 +215,7 @@ export default class CardSelector {
         // add also correct answer to random position
         this.targets.splice(Math.floor(Math.random()*this.targets.length+1), 0, {
             text: this.direction ? record.target : record.source,
+            comment: this.direction ? record.targetComment : record.sourceComment,
             id: record.answerId
         });
     }
@@ -361,7 +365,7 @@ export default class CardSelector {
         let ret = {
             items: this.targets,
             source: this.direction ? record.source : record.target,
-            comment: record.comment,
+            comment: this.direction ? record.sourceComment : record.targetComment,
             id: record._id
         };
 

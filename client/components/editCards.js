@@ -5,6 +5,7 @@ import BackendApi from '../utils/backendApi'
 import Input from 'react-toolbox/lib/input';
 import { Table, TableHead, TableRow, TableCell } from 'react-toolbox/lib/table';
 import { Button } from 'react-toolbox/lib/button'
+import _ from 'lodash'
 
 const ItemsPerPage = 5;
 
@@ -34,7 +35,8 @@ class EditCards extends React.Component {
             let filterLowercase = filter.toLowerCase();
             filteredCards = cards.filter(card => card.source.toLowerCase().includes(filterLowercase) ||
                 card.target.toLowerCase().includes(filterLowercase) ||
-                card.comment.toLowerCase().includes(filterLowercase));
+                (card.sourceComment && card.sourceComment.toLowerCase().includes(filterLowercase)) ||
+                (card.targetComment && card.targetComment.toLowerCase().includes(filterLowercase)));
         }
 
         return filteredCards;
@@ -96,11 +98,16 @@ class EditCards extends React.Component {
 
     async deleteCards() {
 
-        for (let id in this.state.selected) {
+        for (let id of _.values(this.state.selected)) {
             await BackendApi.deleteCard(id);
         }
 
         await this.getCards(this.props);
+    }
+
+    async editCard() {
+        let cardId = _.values(this.state.selected)[0];
+        this.props.router.push('/editCard/' + cardId);
     }
 
     selectCard(selected) {
@@ -139,12 +146,12 @@ class EditCards extends React.Component {
         return <div className="settings">
 
             <div className="breadcrumbs">
-                <div className="item"><a href="#/settings">Settings</a></div>
-                <div className="item"><a href={'#/settings/set/'+this.props.selectedSet.id}>{this.props.selectedSet.name}</a></div>
+                <div className="item"><a href="#/manageSets">Sets</a></div>
+                <div className="item"><a href={'#/editSet/'+this.props.selectedSet.id}>{this.props.selectedSet.name}</a></div>
                 <div className="item">Edit Cards</div>
             </div>
 
-            <h2>Edit Cards</h2>
+            <h1>Edit Cards</h1>
 
             <div className="filter">
 
@@ -161,13 +168,11 @@ class EditCards extends React.Component {
                 <TableHead>
                     <TableCell>Source</TableCell>
                     <TableCell>Target</TableCell>
-                    <TableCell>Comment</TableCell>
                 </TableHead>
 
                 {this.state.records.map(card => (<TableRow selected={this.state.selected.indexOf(card.id) !== -1} key={card.id}>
                     <TableCell>{card.source}</TableCell>
                     <TableCell>{card.target}</TableCell>
-                    <TableCell>{card.comment}</TableCell>
                 </TableRow>))}
 
             </Table>
@@ -180,13 +185,20 @@ class EditCards extends React.Component {
                 </li>; })}
             </ul> : null}
 
-            <div>{this.state.selected.length ? <Button
-                    label="Delete selected"
+            {this.state.selected.length ? <div>
+                <Button
+                    label="Delete cards"
                     onTouchTap={() => this.deleteCards()}
                     raised
                     style={{ fontSize: '1em', width: '100%', marginTop: '1em' }}
                 />
-                : null }</div>
+                <Button
+                    label="Edit card"
+                    onTouchTap={() => this.editCard()}
+                    raised
+                    style={{ fontSize: '1em', width: '100%', marginTop: '1em' }}
+                />
+            </div> : null}
         </div>;
     }
 
