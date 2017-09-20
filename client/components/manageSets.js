@@ -53,11 +53,10 @@ class Settings extends React.Component {
             </div>
             { this.state.addNewSet ? <div className="new-set">
                 <Input
-                    className="input"
                     type='text'
                     label={<span style={{ fontSize: '0.8em' }}>Name</span>}
-                    style={{ fontSize: '1em' }}
                     value={this.state.newSetName}
+                    style={{ width: 'inherit' }}
                     onChange={(value) => this.setState({ newSetName: value })} />
                 <Button
                     label='Add'

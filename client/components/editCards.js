@@ -158,7 +158,6 @@ class EditCards extends React.Component {
                 <Input
                     type="text"
                     label={<span style={{ fontSize: '0.8em' }}>Filter</span>}
-                    style={{ fontSize: '1em', width: '100%' }}
                     value={this.state.filter}
                     onChange={value => this.setFilter(value)}
                 />
