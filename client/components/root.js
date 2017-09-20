@@ -14,8 +14,6 @@ class Root extends React.Component {
         if (!success) {
             return;
         }
-
-        this.props.dispatch(SetActions.refresh());
     }
 
     render() {
