@@ -167,7 +167,6 @@ class AddCard extends React.Component {
                     disabled={!enabled}
                     type="text"
                     label={<span style={{ fontSize: '0.8em' }}>{property.label}</span>}
-                    style={{ fontSize: '1em', width: '100%' }}
                     value={this.state[property.name]}
                     onChange={value => this.setState({ [property.name]: value })}
                     multiline={property.multiLine}

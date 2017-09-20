@@ -9,6 +9,11 @@
   padding: 0 1em 1em;
   font-family: 'Open Sans', sans-serif;
 
+  input[type=text] {
+    font-size: 1.2em;
+    width: 100%;
+  }
+
   h1 {
     margin: 0.5em 0;
     font-size: 1.5em;
