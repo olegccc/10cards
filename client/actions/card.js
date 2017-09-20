@@ -11,7 +11,7 @@ export default class Card {
 
     static startOver(onlyHardest) {
 
-        return async (dispatch, getState) => {
+        return async (dispatch) => {
 
             dispatch(StateActions.onStartLoading());
 
@@ -28,7 +28,7 @@ export default class Card {
 
     static answerIncorrect() {
 
-        return async (dispatch, getState) => {
+        return async (dispatch) => {
 
             dispatch(StateActions.onStartLoading());
 
@@ -69,7 +69,7 @@ export default class Card {
 
     static getNext() {
 
-        return async (dispatch, getState) => {
+        return async (dispatch) => {
 
             dispatch(StateActions.onStartLoading());
 
