@@ -61,7 +61,7 @@ export default class ServerController {
         return session;
     }
 
-    async getSetAndSession(req, useDefault) {
+    async getSetAndSession(req, useDefault, dontThrowOnNoSet) {
 
         let {setId} = req;
 
@@ -81,9 +81,11 @@ export default class ServerController {
                 }).next();
 
                 if (!set) {
-                    return {
-                        noSets: true
-                    };
+                    if (dontThrowOnNoSet) {
+                        return;
+                    } else {
+                        throw Error('No set available');
+                    }
                 }
             }
 
@@ -627,7 +629,13 @@ export default class ServerController {
 
     async getCard(req) {
 
-        let {set, session} = await this.getSetAndSession(req, true);
+        let {set, session} = await this.getSetAndSession(req, true, true);
+
+        if (!set) {
+            return {
+                noSets: true
+            };
+        }
 
         const cardSelector = new CardSelector(this.db, set, session);
 
