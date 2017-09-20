@@ -5,6 +5,7 @@ import BackendApi from '../utils/backendApi'
 import { Button } from 'react-toolbox/lib/button'
 import Input from 'react-toolbox/lib/input';
 import _ from 'lodash'
+import SetActions from '../actions/set'
 
 const isBlank = str => !str || /^\s*$/.test(str);
 
@@ -40,7 +41,7 @@ class AddCard extends React.Component {
         super(props);
 
         this.state = {
-            statistics: null,
+            count: null,
             enabled: true
         };
 
@@ -52,6 +53,10 @@ class AddCard extends React.Component {
 
         if (this.props.routeParams.cardId) {
             this.readCard();
+        }
+
+        if (!props.sets && props.selectedSet) {
+            props.dispatch(SetActions.refresh());
         }
     }
 
@@ -77,7 +82,7 @@ class AddCard extends React.Component {
     async getStatistics() {
 
         let statistics = await BackendApi.getSetStatistics(this.props.setId);
-        this.setState({ statistics });
+        this.setState({ count: statistics.count });
     }
 
     async addCard() {
@@ -110,15 +115,19 @@ class AddCard extends React.Component {
                 return;
             }
 
-            state.statistics = await BackendApi.addCard(setId, options);
+            let response = await BackendApi.addCard(setId, options);
+
+            state.count = response.count;
+
             state.enabled = true;
 
             this.setState(state);
 
         } catch(error) {
+            console.log(error.error);
             this.setState({
                 enabled: true,
-                error: error.message
+                error: error.error
             });
         }
     }
@@ -127,7 +136,7 @@ class AddCard extends React.Component {
 
         let {selectedSet} = this.props;
         let {cardId} = this.props.routeParams;
-        let {statistics, enabled, error} = this.state;
+        let {count, enabled, error} = this.state;
 
         let isValid = true;
 
@@ -140,11 +149,9 @@ class AddCard extends React.Component {
 
         return <div className="settings">
 
-            {error ? <p className='error'>{error}</p> : null}
-
             {selectedSet ? <div>
                 <div className="breadcrumbs">
-                    <div className="item"><a href="#/settings">Settings</a></div>
+                    <div className="item"><a href="#/manageSets">Sets</a></div>
                     <div className="item"><a href={'#/settings/set/'+selectedSet.id}>{selectedSet.name}</a></div>
                     <div className="item">Add card</div>
                 </div>
@@ -157,8 +164,8 @@ class AddCard extends React.Component {
 
             <h1>{cardId ? 'Edit card' : 'Add card'}</h1>
 
-            {statistics ? <p>
-                Card count: {statistics.count}
+            {count !== null ? <p>
+                Card count: {count}
             </p> : null}
 
             {properties.map(property =>
@@ -172,6 +179,8 @@ class AddCard extends React.Component {
                     multiline={property.multiLine}
                 />)}
 
+            {error ? <p className='error'>{error}</p> : null}
+
             <Button
                 label={cardId ? 'Save card' : 'Add card'}
                 primary
@@ -180,6 +189,7 @@ class AddCard extends React.Component {
                 onTouchTap={() => this.addCard()}
                 style={{ fontSize: '1em', width: '100%' }}
             />
+
         </div>;
     }
 }
@@ -188,15 +198,16 @@ const mapStateToProps = ({set}, props) => {
 
     let setId = props.routeParams.id;
     let selectedSet;
+    let sets = set.get('sets');
 
     if (setId) {
-        let sets = set.get('sets');
-        selectedSet = sets.find(set => set.id === setId) || {};
+        selectedSet = (sets && sets.find(set => set.id === setId)) || {};
     }
 
     return {
         selectedSet,
-        setId
+        setId,
+        sets
     };
 };
 

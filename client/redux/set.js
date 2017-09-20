@@ -2,7 +2,7 @@ import { Map } from 'immutable'
 import SetActions from '../actions/set'
 
 const defaultState = Map({
-    sets: []
+    sets: null
 });
 
 function reducer(state = defaultState, action) {

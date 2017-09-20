@@ -209,9 +209,11 @@ export default class ServerController {
             answers
         };
 
+        let result;
+
         if (edit) {
             props.updated = new Date();
-            return await collection.updateOne({
+            result = await collection.updateOne({
                 _id: card._id
             }, {
                 $set: props
@@ -223,8 +225,11 @@ export default class ServerController {
             props.setId = set._id;
             props.answerId = sha256(ObjectId().toHexString()).substring(0, 20);
 
-            return await collection.insertOne(props);
+            result = await collection.insertOne(props);
         }
+
+        result.set = set;
+        return result;
     }
 
     async editCard(req) {
@@ -236,10 +241,10 @@ export default class ServerController {
 
     async addCard(req) {
 
-        let result = await this.addOrEditCard(req, false);
+        let {insertedId, set} = await this.addOrEditCard(req, false);
 
         return {
-            id: result.insertedId,
+            id: insertedId,
             name: set.name,
             count: await this.db.collection('cards').count({
                 setId: set._id
