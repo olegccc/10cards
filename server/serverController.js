@@ -82,7 +82,7 @@ export default class ServerController {
 
                 if (!set) {
                     if (dontThrowOnNoSet) {
-                        return;
+                        return {};
                     } else {
                         throw Error('No set available');
                     }
