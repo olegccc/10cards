@@ -72,7 +72,7 @@ class Settings extends React.Component {
 
 const mapStateToProps = ({set}) => {
     return {
-        sets: set.get('sets'),
+        sets: set.get('sets') || [],
         setId: set.get('setId')
     };
 };

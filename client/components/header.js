@@ -7,7 +7,7 @@ class Header extends React.Component {
 
     gotoSettings() {
         const {sets, router} = this.props;
-        if (sets.length > 0) {
+        if (sets && sets.length > 0) {
             router.push('/addCard');
         } else {
             router.push('/manageSets');

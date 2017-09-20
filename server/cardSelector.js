@@ -60,12 +60,15 @@ export default class CardSelector {
     }
 
     async getLastAnswers() {
-        this.lastAnswers = await this.db.collection('answers').aggregate([
+
+        let answers = await this.db.collection('answers').aggregate([
             { $match: {setId: this.set._id} },
             { $sort: {'created': -1} },
             { $limit: 3 },
             { $project: { _id: 1 } }
-        ]).toArray().map(r => r._id.toHexString());
+        ]).toArray();
+
+        this.lastAnswers = answers ? answers.map(r => r._id.toHexString()) : [];
     }
 
     prepareAnswers() {
