@@ -175,7 +175,6 @@ export default class CardSelector {
         }
 
         if (!this.simpleMode) {
-            console.log('chose record ' + idToStr(record._id));
             return record;
         }
 
@@ -183,7 +182,6 @@ export default class CardSelector {
 
         if (this.allCards.length < 6) { // exception: we don't check for last cards if we have very limited set of existing cards
             console.log('too less cards');
-            console.log('chose record ' + idToStr(record._id));
             return record;
         }
 
@@ -199,7 +197,6 @@ export default class CardSelector {
         }
 
         if (i >= this.lastAnswers.length) {
-            console.log('chose record ' + idToStr(record._id));
             return record;
         }
     }
@@ -300,7 +297,7 @@ export default class CardSelector {
 
         if (unansweredCards.length > 0) {
             this.cards = unansweredCards;
-            console.log('selected cards: ', this.cards.map(card => ({
+            console.log('current selected cards: ', this.cards.map(card => ({
                 score: card.score,
                 source: card.source,
                 id: idToStr(card._id)
@@ -327,13 +324,14 @@ export default class CardSelector {
             if (!record) {
                 continue;
             }
+            console.log('chose record ' + idToStr(record._id));
             selectedCards.push(record);
-            this.cards = unansweredCards.filter(r => r !== record);
+            this.cards = this.cards.filter(r => r._id !== record._id);
         }
 
         this.cards = selectedCards;
 
-        console.log('selected cards: ', this.cards.map(card => ({
+        console.log('new selected cards: ', this.cards.map(card => ({
             score: card.score,
             source: card.source,
             id: idToStr(card._id)
@@ -392,6 +390,8 @@ export default class CardSelector {
                 break;
             }
         }
+
+        console.log('chose record ' + idToStr(record._id));
 
         this.prepareTargets(record);
 
