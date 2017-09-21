@@ -30,7 +30,7 @@ const properties = [
     },
     {
         name: 'answers',
-        label: 'Answers (optional, <=5, line delim.)',
+        label: 'Bad answers (optional, one per line)',
         multiLine: true
     }
 ];

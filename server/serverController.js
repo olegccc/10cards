@@ -1,7 +1,6 @@
 import ServerUtils from './serverUtils'
 import {connect, ObjectId} from 'mongodb'
 import FetchService from '../shared/fetchService'
-import sha256 from 'js-sha256'
 import CardSelector from './cardSelector'
 import _ from 'lodash'
 
@@ -223,7 +222,7 @@ export default class ServerController {
             props.userId = session.userId;
             props.created = new Date();
             props.setId = set._id;
-            props.answerId = sha256(ObjectId().toHexString()).substring(0, 20);
+            props.answerId = CardSelector.generateAnswerId();
 
             result = await collection.insertOne(props);
         }
@@ -580,41 +579,8 @@ export default class ServerController {
 
         if (!simpleMode && set.blockSize > 0 && set.currentBlock && set.currentBlock[card._id]) {
 
-            set.currentBlock[card._id] = {
-                answered: true,
-                correct
-            };
-
-            await this.db.collection('sets').updateOne({
-                _id: set._id
-            }, {
-                $set: {
-                    currentBlock: set.currentBlock
-                }
-            });
-
-            let hasUnanswered = false;
-            let hasIncorrect = false;
-
-            _.each(set.currentBlock, (value, key) => {
-                if (!value.answered) {
-                    hasUnanswered = true;
-                }
-                if (!value.correct) {
-                    hasIncorrect = true;
-                }
-            });
-
-            if (!hasUnanswered) {
-                if (!hasIncorrect) {
-                    set.currentBlock = {};
-                } else {
-                    _.each(set.currentBlock, (value, key) => {
-                        if (!value.correct) {
-                            value.answered = false;
-                        }
-                    });
-                }
+            if (correct) {
+                set.currentBlock[card._id] = false;
 
                 await this.db.collection('sets').updateOne({
                     _id: set._id

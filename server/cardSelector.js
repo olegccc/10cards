@@ -1,5 +1,6 @@
 import {ObjectId} from 'mongodb'
 import _ from 'lodash';
+import sha256 from 'js-sha256'
 
 function idToStr(id) {
     if (!id) {
@@ -18,8 +19,11 @@ export default class CardSelector {
         this.set = set;
         this.session = session;
         this.targets = [];
-        this.direction = Math.random() < 0.5;
         this.simpleMode = this.set.simpleMode === undefined || this.set.simpleMode;
+    }
+
+    static generateAnswerId() {
+        return sha256(ObjectId().toHexString()).substring(0, 20);
     }
 
     async loadCards() {
@@ -202,38 +206,61 @@ export default class CardSelector {
 
     prepareTargets(record) {
 
-        let recordTarget = this.direction ? record.target : record.source;
-        let recordTargetLength = recordTarget.length;
+        if (record.answers && record.answers.length) {
+            this.direction = true;
 
-        // console.log('4 ' + setId + ' ' + typeof setId);
+            this.targets = [];
 
-        // choose cards which are different from the selected but have text length similar to selected
-        // sort them by text length difference - less different placed on top
-        let allTargets = this.allCards
-            .filter(r => !r._id.equals(record._id))
-            .map(r => ({
-                text: this.direction ? r.target : r.source,
-                comment: this.direction ? r.targetComment : r.sourceComment,
-                id: r.answerId }))
-            .sort((a, b) => (Math.abs(a.text.length-recordTargetLength)-Math.abs(b.text.length-recordTargetLength)));
+            let answers = record.answers.map(a => a);
 
-        //console.log(record.target);
-        //console.log(JSON.stringify(allTargets, null, ' '));
+            while (answers.length > 0) {
+                let index = Math.random();
+                index = Math.floor(index * answers.length);
 
-        // console.log('5 ' + allTargets.length);
-
-        // choose 4 incorrect answers
-        while (allTargets.length > 0 && this.targets.length < 4) {
-            if (allTargets.length < 4) {
-                this.targets.push(allTargets.pop());
-                continue;
+                this.targets.push({
+                    text: answers[index],
+                    id: CardSelector.generateAnswerId(),
+                    comment: ''
+                });
+                answers.splice(index, 1);
             }
+        } else {
+            this.direction = Math.random() < 0.5;
 
-            let index = Math.random();
-            index = Math.floor(index * index * allTargets.length/2);
+            let recordTarget = this.direction ? record.target : record.source;
+            let recordTargetLength = recordTarget.length;
 
-            this.targets.push(allTargets[index]);
-            allTargets.splice(index, 1);
+            // console.log('4 ' + setId + ' ' + typeof setId);
+
+            // choose cards which are different from the selected but have text length similar to selected
+            // sort them by text length difference - less different placed on top
+            let allTargets = this.allCards
+                .filter(r => !r._id.equals(record._id))
+                .map(r => ({
+                    text: this.direction ? r.target : r.source,
+                    comment: this.direction ? r.targetComment : r.sourceComment,
+                    id: r.answerId }))
+                .sort((a, b) => (Math.abs(a.text.length-recordTargetLength)-Math.abs(b.text.length-recordTargetLength)));
+
+            //console.log(record.target);
+            //console.log(JSON.stringify(allTargets, null, ' '));
+
+            // console.log('5 ' + allTargets.length);
+
+            // choose 4 incorrect answers
+            while (allTargets.length > 0 && this.targets.length < 4) {
+
+                let index = Math.random();
+
+                if (allTargets.length < 4) {
+                    index = Math.floor(index * allTargets.length);
+                } else {
+                    index = Math.floor(index * index * allTargets.length/2);
+                }
+
+                this.targets.push(allTargets[index]);
+                allTargets.splice(index, 1);
+            }
         }
 
         // add also correct answer to random position
@@ -263,82 +290,71 @@ export default class CardSelector {
             return null;
         }
 
-        let hasIncorrect = false;
-
         let currentBlock = this.set.currentBlock || {};
 
-        let hasChanges = false;
+        console.log('currentBlock: ', _.map(currentBlock, (value, key) => ({ id: idToStr(key), value })));
 
-        let filter = card => {
-            let ref = currentBlock[card._id.toHexString()];
-            if (ref && !ref.correct) {
-                hasIncorrect = true;
-            }
-            return ref && !ref.answered;
-        };
+        let filter = card => currentBlock[card._id.toHexString()];
 
         let unansweredCards = this.cards.filter(filter);
 
-        if (!unansweredCards.length && hasIncorrect) {
-            _.each(currentBlock, (value, key) => {
-                if (!value.correct) {
-                    value.answered = false;
-                    hasChanges = true;
-                }
-            });
-            unansweredCards = this.cards.filter(filter);
-        }
-
-        if (unansweredCards.length) {
+        if (unansweredCards.length > 0) {
             this.cards = unansweredCards;
-        } else {
-            unansweredCards = this.cards.filter(card => !card.answered);
-
-            if (!unansweredCards.length) {
-                return {
-                    allAnswered: true,
-                    allCorrect: this.cards.filter(card => !card.correctAnswer).length === 0
-                };
-            }
-
-            let selectedCards = [];
-
-            this.cards = unansweredCards;
-
-            while (this.cards.length > 0 && selectedCards.length < this.set.blockSize) {
-                let record = this.chooseRecord();
-                if (!record) {
-                    continue;
-                }
-                selectedCards.push(record);
-                this.cards = unansweredCards.filter(r => r !== record);
-            }
-
-            this.cards = selectedCards;
-
-            currentBlock = {};
-            for (let card of this.cards) {
-                currentBlock[card._id.toHexString()] = {
-                    answered: false,
-                    correct: false
-                };
-            }
-
-            hasChanges = true;
+            console.log('selected cards: ', this.cards.map(card => ({
+                score: card.score,
+                source: card.source,
+                id: idToStr(card._id)
+            })));
+            return null;
         }
 
-        if (hasChanges) {
+        unansweredCards = this.cards.filter(card => !card.answered);
 
-            this.set.currentBlock = currentBlock;
-
-            await this.db.collection('sets').updateOne({
-                _id: this.set._id
-            }, {
-                $set: {
-                    currentBlock: currentBlock
-                }
-            });
+        if (!unansweredCards.length) {
+            console.log('no unaswered cards');
+            return {
+                allAnswered: true,
+                allCorrect: this.cards.filter(card => !card.correctAnswer).length === 0
+            };
         }
+
+        let selectedCards = [];
+
+        this.cards = unansweredCards;
+
+        while (this.cards.length > 0 && selectedCards.length < this.set.blockSize) {
+            let record = this.chooseRecord();
+            if (!record) {
+                continue;
+            }
+            selectedCards.push(record);
+            this.cards = unansweredCards.filter(r => r !== record);
+        }
+
+        this.cards = selectedCards;
+
+        console.log('selected cards: ', this.cards.map(card => ({
+            score: card.score,
+            source: card.source,
+            id: idToStr(card._id)
+        })));
+
+        currentBlock = {};
+        for (let card of this.cards) {
+            currentBlock[card._id.toHexString()] = true;
+        }
+
+        this.set.currentBlock = currentBlock;
+
+        await this.db.collection('sets').updateOne({
+            _id: this.set._id
+        }, {
+            $set: {
+                currentBlock: currentBlock
+            }
+        });
+
+        return null;
     }
 
     async selectCard() {
@@ -396,7 +412,7 @@ export default class CardSelector {
         if (this.set.blockSize > 0) {
             ret.remainingBlock = 0;
             _.each(this.set.currentBlock, (value) => {
-                if (!value.answered) {
+                if (value) {
                     ret.remainingBlock++;
                 }
             });
