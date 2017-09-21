@@ -4,6 +4,8 @@ import ServerController from './serverController'
 import path from 'path'
 import 'isomorphic-fetch'
 
+require('source-map-support').install();
+
 let useHttps = false;
 
 let port;

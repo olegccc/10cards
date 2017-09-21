@@ -42,8 +42,13 @@ export default class ServerUtils {
                 } catch (error) {
                     res.set('Content-Type', 'application/json');
                     res.status(500).end(JSON.stringify({
-                        error: error.message
+                        error: error.message,
+                        stack: error.stack
                     }));
+                    console.error({
+                        error: error.message,
+                        stack: error.stack
+                    });
                 }
             });
         }

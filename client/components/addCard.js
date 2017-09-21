@@ -174,6 +174,15 @@ class AddCard extends React.Component {
                 Card count: {count}
             </p> : null}
 
+            <Button
+                label={cardId ? 'Save card' : 'Add card'}
+                primary
+                raised
+                disabled={!isValid || !enabled}
+                onTouchTap={() => this.addCard()}
+                style={{ fontSize: '1em', width: '100%' }}
+            />
+
             {properties.map(property =>
                 <Input
                     key={property.name}
