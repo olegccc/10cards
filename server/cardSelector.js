@@ -83,28 +83,25 @@ export default class CardSelector {
 
             card.answers = answer.count;
 
-            if (this.simpleMode && answer.items.length) {
+            if (answer.items.length) {
                 let items = answer.items.map(i => i ? 1 : 0);
                 card.score = items.reduce((a, b) => a + b, 0) / items.length;
             }
         }
 
-        if (this.simpleMode) {
+        for (let card of this.cards) {
+            card.score = card.score !== undefined ? card.score : -1;
+        }
 
-            for (let card of this.cards) {
-                card.score = card.score !== undefined ? card.score : -1;
-            }
+        // we place records which will have higher probability at the beginning of the list
+        // * records without answers will have highest probability among others
+        // * records with lower score will have higher probability than records with higher score
+        // this way we guarantee to take all unanswered records as fast as possible and then concentrate on records
+        // with lower score (i.e. which have less correct answers)
 
-            // we place records which will have higher probability at the beginning of the list
-            // * records without answers will have highest probability among others
-            // * records with lower score will have higher probability than records with higher score
-            // this way we guarantee to take all unanswered records as fast as possible and then concentrate on records
-            // with lower score (i.e. which have less correct answers)
+        this.cards.sort((a, b) => a.score - b.score);
 
-            this.cards.sort((a, b) => a.score - b.score);
-
-        } else {
-
+        if (!this.simpleMode) {
             for (let answer of this.cycleAnswers) {
                 let card = this.cards.find(r => r._id.equals(answer.cardId));
                 if (card) {

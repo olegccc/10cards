@@ -3,6 +3,8 @@ import {connect} from 'react-redux'
 import { withRouter } from 'react-router'
 import BackendApi from '../utils/backendApi'
 import { Button } from 'react-toolbox/lib/button'
+import CardActions from '../actions/card'
+import SetActions from '../actions/set'
 
 class EditSet extends React.Component {
 
@@ -16,6 +18,10 @@ class EditSet extends React.Component {
 
         this.getStatistics();
         this.getSettings();
+
+        if (!props.sets) {
+            props.dispatch(SetActions.refresh());
+        }
     }
 
     async getStatistics() {
@@ -40,16 +46,19 @@ class EditSet extends React.Component {
             await BackendApi.setSetSimpleMode(this.props.setId);
         }
         await this.getSettings();
+        this.props.dispatch(CardActions.reset());
     }
 
     async startOver() {
         await BackendApi.startOver(this.props.setId);
         await this.getSettings();
+        this.props.dispatch(CardActions.reset());
     }
 
     async reset() {
         await BackendApi.reset(this.props.setId);
         await this.getSettings();
+        this.props.dispatch(CardActions.reset());
     }
 
     renderBody() {
@@ -134,7 +143,7 @@ const mapStateToProps = ({set}, props) => {
     let setId = props.routeParams.id;
     let sets = set.get('sets');
 
-    let selectedSet = sets.find(set => set.id === setId) || {};
+    let selectedSet = (sets && sets.find(set => set.id === setId)) || {};
 
     return {
         selectedSet,

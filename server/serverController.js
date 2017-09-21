@@ -476,7 +476,7 @@ export default class ServerController {
             let cardIds = await cardSelector.getHardestCardIds();
             // prepare to remove records with high quality
             // use 40% of hardest questions
-            let hardestCount = Math.floor(cardIds.length*0.4);
+            let hardestCount = Math.floor(cardIds.length*0.5);
             // use 10% of random questions
             let randomCount = Math.floor(cardIds.length*0.1);
             let cardsToRemove = cardIds.slice(0, hardestCount);

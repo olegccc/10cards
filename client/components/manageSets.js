@@ -2,9 +2,10 @@ import React from 'react'
 import {connect} from 'react-redux'
 import { withRouter } from 'react-router'
 import SetActions from '../actions/set'
-import { List, ListItem, ListSubHeader } from 'react-toolbox/lib/list';
+import { List, ListItem } from 'react-toolbox/lib/list';
 import { Button, IconButton } from 'react-toolbox/lib/button'
 import Input from 'react-toolbox/lib/input';
+import CardActions from '../actions/card'
 
 class Settings extends React.Component {
 
@@ -32,6 +33,7 @@ class Settings extends React.Component {
         });
         let insertedId = await this.props.dispatch(SetActions.addNewSet(setName));
         this.props.router.push('/editSet/' + insertedId);
+        this.props.dispatch(CardActions.reset());
     }
 
     async setActiveSet(event, set) {
@@ -39,6 +41,7 @@ class Settings extends React.Component {
         event.stopPropagation();
         await this.props.dispatch(SetActions.setCurrentSet(set.id));
         this.props.dispatch(SetActions.refresh());
+        this.props.dispatch(CardActions.reset());
     }
 
     render() {
