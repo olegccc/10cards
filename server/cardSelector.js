@@ -373,7 +373,10 @@ export default class CardSelector {
         };
 
         if (!this.simpleMode) {
-            ret.remainingTotal = this.allCards.length - await this.db.collection('cycleAnswers').count();
+            let count = await this.db.collection('cycleAnswers').count({
+                setId: this.set._id
+            });
+            ret.remainingTotal = this.allCards.length - count;
         }
 
         if (this.set.blockSize > 0) {
