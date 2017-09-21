@@ -404,6 +404,14 @@ export default class ServerController {
         let {set} = await this.getSetAndSession(req);
         await this.deleteAnswers(set._id);
 
+        await this.db.collection('sets').updateOne({
+            _id: set._id
+        }, {
+            $set: {
+                currentBlock: {}
+            }
+        });
+
         return {
             success: true
         };
@@ -491,6 +499,14 @@ export default class ServerController {
                 setId: set._id
             });
         }
+
+        await this.db.collection('sets').updateOne({
+            _id: set._id
+        }, {
+            $set: {
+                currentBlock: {}
+            }
+        });
 
         return {
             success: true

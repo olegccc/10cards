@@ -34,6 +34,13 @@ class Settings extends React.Component {
         this.props.router.push('/editSet/' + insertedId);
     }
 
+    async setActiveSet(event, set) {
+        event.preventDefault();
+        event.stopPropagation();
+        await this.props.dispatch(SetActions.setCurrentSet(set.id));
+        this.props.dispatch(SetActions.refresh());
+    }
+
     render() {
 
         return <div className="settings">
@@ -44,8 +51,9 @@ class Settings extends React.Component {
                         <ListItem
                             caption={set.name}
                             key={set.id}
-                            rightIcon={ set.id === this.props.setId ? <IconButton onTouchTap={() => this.props.dispatch(SetActions.setCurrentSet(set.id))} icon='star'/> : null}
-                            onClick={() => this.props.router.push('/editSet/' + set.id)}>
+                            onClick={() => this.props.router.push('/editSet/' + set.id)}
+                            rightIcon={ <IconButton onTouchTap={(event) => this.setActiveSet(event, set)} icon={set.active ? 'star' : 'crop_free'}/>}
+                        >
                         </ListItem>
                     ))}
                     <ListItem onClick={() => this.toggleCreateSet()} caption="Add new set"/>
@@ -72,8 +80,7 @@ class Settings extends React.Component {
 
 const mapStateToProps = ({set}) => {
     return {
-        sets: set.get('sets') || [],
-        setId: set.get('setId')
+        sets: set.get('sets') || []
     };
 };
 

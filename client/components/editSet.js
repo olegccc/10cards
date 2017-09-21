@@ -57,10 +57,10 @@ class EditSet extends React.Component {
 
             <div className="breadcrumbs">
                 <div className="item"><a href="#/manageSets">Sets</a></div>
-                <div className="item">Edit set '{this.props.selectedSet.name}'</div>
+                <div className="item">{this.props.selectedSet.name}</div>
             </div>
 
-            <h1>Edit set '{this.props.selectedSet.name}'</h1>
+            <h1>Edit set</h1>
 
             <h2>Cards</h2>
 

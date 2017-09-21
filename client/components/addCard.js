@@ -132,6 +132,12 @@ class AddCard extends React.Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.sets && !nextProps.sets.length) {
+            this.props.router.push('/manageSets');
+        }
+    }
+
     render() {
 
         let {selectedSet} = this.props;
