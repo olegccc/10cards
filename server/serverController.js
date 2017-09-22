@@ -2,7 +2,6 @@ import ServerUtils from './serverUtils'
 import {connect, ObjectId} from 'mongodb'
 import FetchService from '../shared/fetchService'
 import CardSelector from './cardSelector'
-import _ from 'lodash'
 
 const ALL_METHODS = [
     'post:card:getCard',
@@ -474,10 +473,10 @@ export default class ServerController {
             const cardSelector = new CardSelector(this.db, set, session);
             let cardIds = await cardSelector.getHardestCardIds();
             // prepare to remove records with high quality
-            // use 40% of hardest questions
+            // use 50% of hardest questions
             let hardestCount = Math.floor(cardIds.length*0.5);
-            // use 10% of random questions
-            let randomCount = Math.floor(cardIds.length*0.1);
+            // use 20% of random questions
+            let randomCount = Math.floor(cardIds.length*0.2);
             let cardsToRemove = cardIds.slice(0, hardestCount);
             cardIds.splice(0, hardestCount);
             for (let i = 0; i < randomCount; i++) {
@@ -629,9 +628,7 @@ export default class ServerController {
         return await cardSelector.selectCard();
     }
 
-    async login(req) {
-
-        let {sessionId, accessToken} = req;
+    async login({sessionId, accessToken}) {
 
         if (sessionId && RE_OBJECT_ID.test(sessionId)) {
 
