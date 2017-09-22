@@ -489,7 +489,7 @@ export default class ServerController {
             await this.db.collection('cycleAnswers').removeMany({
                 setId: set._id,
                 cardId: {
-                    $in: cardIds
+                    $in: cardsToRemove
                 }
             });
         } else {
