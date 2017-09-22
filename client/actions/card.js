@@ -1,5 +1,4 @@
 import StateActions from '../actions/state'
-import SetActions from '../actions/set'
 import BackendApi from '../utils/backendApi'
 
 export default class Card {

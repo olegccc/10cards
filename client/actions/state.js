@@ -1,5 +1,3 @@
-import FetchService from '../../shared/fetchService'
-
 export default class State {
 
     static LOGIN_SUCCESS = 'login_success';
